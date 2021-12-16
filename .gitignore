@@ -1,2 +1,4 @@
 *.layout
-/obj
+/.vscode
+*.exe
+*.code-workspace
