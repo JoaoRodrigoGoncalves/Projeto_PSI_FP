@@ -97,10 +97,6 @@ int main()
                             consultar_escolas(escolas, &escolas_registadas);
                             break;
 
-                        case 'a':
-                            // apagar escola
-                            break;
-
                         case 'v':
                             selecao_saida_escolas = 's';
                             break;
@@ -221,9 +217,10 @@ void ler_string(char string[], char texto_questao[], int min, int max)
 void aplicar_tabs(char texto[], int chars_da_string_longa)
 {
     int max_tabs = ceil(chars_da_string_longa/8);
-    int tamanho_em_tabs = ceil(strlen(texto)/8), tabs_string, contador;
+    int tamanho_em_tabs = ceil(strlen(texto)/8); // obtém o tamanho de uma string em tabs (conjuntos de 8), arredondado por excesso.
+    int tabs_string, contador;
 
-    tabs_string = (max_tabs - tamanho_em_tabs)+1;
+    tabs_string = (max_tabs - tamanho_em_tabs)+1; // +1 para contar com o texto já escrito no cabeçalho da coluna.
 
     printf("%s", texto);
     for(contador = 0; contador < tabs_string; contador++)
@@ -269,17 +266,15 @@ char menu_escolas()
         printf("\n======== Escolas =========");
         printf("\n[R] Registar Escola");
         printf("\n[C] Consultar Lista");
-        printf("\n[A] Apagar Escola");
         printf("\n[V] Voltar ao Menu Anterior");
         printf("\n==========================");
 
-        //ler_string(&escolha, "Indique uma opcao", 1, 1);
         printf("\nOpcao: ");
         scanf(" %c", &escolha);
         escolha = tolower(escolha);
-        if(escolha != 'r' && escolha != 'c' && escolha != 'a' && escolha != 'v')
+        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
             printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 'r' && escolha != 'c' && escolha != 'a' && escolha != 'v');
+    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
     return escolha;
 }
 
@@ -312,31 +307,38 @@ void registar_escola(t_escola escolas[], int *num_registos)
 
 /**
  * @brief Lista todas as escolas registadas
- * TODO: Melhorar tabela através de uma função para alinhas as colunas como deve de ser
  * @param escolas Vetor de estruturas do tipo t_escola onde a informação está guardada.
  * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para iterar pelo vetor.
  */
 void consultar_escolas(t_escola escolas[], int *num_registos)
 {
-    int posicao, auxiliar, maximo_chars = 0, contador;
+    int posicao, auxiliar, contador, max_char_nome = 0, max_char_abreviatura = 0, max_char_campus = 0, max_char_localidade = 0;
     if(*num_registos > 0)
     {
         for(posicao = 0; posicao < *num_registos; posicao++)
         {
-            // determina qual o comprimento do maior nome
-            auxiliar = strlen(escolas[posicao].nome);
-            if(auxiliar > maximo_chars)
-                maximo_chars = auxiliar;
+            max_char_nome = (strlen(escolas[posicao].nome) > max_char_nome ? strlen(escolas[posicao].nome) : max_char_nome);
+            max_char_abreviatura = (strlen(escolas[posicao].abreviatura) > max_char_abreviatura ? strlen(escolas[posicao].abreviatura) : max_char_abreviatura);
+            max_char_campus = (strlen(escolas[posicao].campus) > max_char_campus ? strlen(escolas[posicao].campus) : max_char_campus);
+            //a última coluna (localidade) não precisa de tabs
         }
 
+        max_char_abreviatura = (strlen("Abreviatura") > max_char_abreviatura ? strlen("Abreviatura") : max_char_abreviatura); // normalmente a palavra "Abreviatura" é maior que as abreviaturas. Isto repara os tabs
+        // a coluna dos campi não precisa de um calculo para a palavra "Campus" pois a função aplicar_tabs já conta com 1 tab a mais por causa do texto de cabeçalho
+
         printf("\n\nID\t");
-        aplicar_tabs("Nome", maximo_chars);
-        printf("Abreviatura\tCampus\t\tLocalidade");
+        aplicar_tabs("Nome", max_char_nome);
+        aplicar_tabs("Abreviatura", max_char_abreviatura);
+        aplicar_tabs("Campus", max_char_campus);
+        aplicar_tabs("Localidade", max_char_localidade);
+
         for(posicao = 0; posicao < *num_registos; posicao++)
         {
             printf("\n%d\t", escolas[posicao].identificador);
-            aplicar_tabs(escolas[posicao].nome, maximo_chars);
-            printf("%s\t\t%s\t%s", escolas[posicao].abreviatura, escolas[posicao].campus, escolas[posicao].localidade);
+            aplicar_tabs(escolas[posicao].nome, max_char_nome);
+            aplicar_tabs(escolas[posicao].abreviatura, max_char_abreviatura);
+            aplicar_tabs(escolas[posicao].campus, max_char_campus);
+            printf("%s", escolas[posicao].localidade); // a última coluna não precisa de tabs
         }
     }
     else
