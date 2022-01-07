@@ -14,19 +14,22 @@
 #define MAX_UTILIZADORES 200
 #define MAX_TRANSACOES 5000
 
-typedef struct {
+typedef struct
+{
     int dia;
     int mes;
     int ano;
 } t_data;
 
-typedef struct {
+typedef struct
+{
     int hora;
     int minuto;
     int segundo;
 } t_hora;
 
-typedef struct {
+typedef struct
+{
     int identificador;
     char nome[100];
     char abreviatura[10];
@@ -34,16 +37,19 @@ typedef struct {
     char localidade[20];
 } t_escola;
 
-typedef struct {
+typedef struct
+{
     int identificador;
+    int escola;
     char nome[100];
     int NIF;
-    char tipo[30]; // tipo de estudante (Estudante/Docente/Funcionário) uma estrutura?
+    int tipo; // tipo de estudante (Estudante-0/Docente-1/Funcionário-2) uma estrutura?
     char email[100];
     float saldo; // isto ainda me vai dar problemas. eu metia um inteiro e fazer uma divisão por 100 para encontrar as casas decimais. só não faço já porque tenho medo que o stor me dê porrada
 } t_utilizador;
 
-typedef struct {
+typedef struct
+{
     int identificador;
     int utilizador; //indentificador do utilizador
     char tipo[30]; // tipo de transação (Carregamento/Pagamento) uma estrutura?
@@ -65,6 +71,7 @@ void listar_utilizadores_paginado(t_escola [], int *);
 char menu();
 char menu_escolas();
 char menu_transacoes();
+char menu_utilizadores();
 char confirmar_saida();
 
 // outras funções
@@ -74,6 +81,8 @@ void guardar_informacao();
 void registar_escola(t_escola [], int *);
 void consultar_escolas(t_escola [], int *);
 void registar_transacao(t_transacao [], int *, int *, t_utilizador [], int *);
+void registar_utilizadores(t_utilizador [],int *);
+void consultar_utilizadores(t_utilizador [], int *);
 
 int main()
 {
@@ -81,58 +90,81 @@ int main()
     t_utilizador utilizadores[MAX_UTILIZADORES];
     t_transacao transacoes[MAX_TRANSACOES];
     int escolas_registadas = 0, utilizadores_registados = 0, transacoes_registadas = 0;
-    char selecao_saida = 'n', selecao_saida_escolas = 'n', selecao_saida_transacoes = 'n';
+    char selecao_saida = 'n', selecao_saida_escolas = 'n', selecao_saida_transacoes = 'n', selecao_saida_utilizadores = 'n';
     // TODO: carregar informação dos ficheiros
 
-    do{
+    do
+    {
         switch(menu())
         {
-            case 'e':
-                do{
-                    switch(menu_escolas())
-                    {
-                        case 'r':
-                            registar_escola(escolas, &escolas_registadas);
-                            break;
+        case 'e':
+            do
+            {
+                switch(menu_escolas())
+                {
+                case 'r':
+                    registar_escola(escolas, &escolas_registadas);
+                    break;
 
-                        case 'c':
-                            consultar_escolas(escolas, &escolas_registadas);
-                            break;
+                case 'c':
+                    consultar_escolas(escolas, &escolas_registadas);
+                    break;
 
-                        case 'v':
-                            selecao_saida_escolas = 's';
-                            break;
-                    }
-                }while(selecao_saida_escolas != 's');
-                break;
+                case 'v':
+                    selecao_saida_escolas = 's';
+                    break;
+                }
+            }
+            while(selecao_saida_escolas != 's');
+            break;
 
-            case 'u':
-                // menu utilizadores
-                break;
+        case 'u':
+            do
+            {
+                switch(menu_utilizadores())
+                {
+                case 'r':
+                    //consultar_escolas(escolas,&escolas_registadas);
+                    registar_utilizadores(utilizadores, &utilizadores_registados);
+                    break;
 
-            case 't':
-                do{
-                    switch(menu_transacoes())
-                    {
-                        case 'r':
-                            registar_transacao(transacoes, &transacoes_registadas, &escolas_registadas, utilizadores, &utilizadores_registados);
-                            break;
-                        
-                        case 'c':
-                            break;
+                case 'c':
+                    consultar_utilizadores(utilizadores, &utilizadores_registados);
+                    break;
 
-                        case 'v':
-                            selecao_saida_transacoes = 's';
-                            break;
-                    }
-                }while(selecao_saida_transacoes != 's');
-                break;
 
-            case 's':
-                selecao_saida = confirmar_saida();
-                break;
+                case 'v':
+                    selecao_saida_utilizadores = 's';
+                    break;
+                }
+            }
+            while(selecao_saida_utilizadores != 's');
+            break;
+
+        case 't':
+            do{
+                switch(menu_transacoes())
+                {
+                    case 'r':
+                        registar_transacao(transacoes, &transacoes_registadas, &escolas_registadas, utilizadores, &utilizadores_registados);
+                        break;
+                    
+                    case 'c':
+                        break;
+
+                    case 'v':
+                        selecao_saida_transacoes = 's';
+                        break;
+                }
+            }while(selecao_saida_transacoes != 's');
+            break;
+
+        case 's':
+            selecao_saida = confirmar_saida();
+            break;
         }
-    }while(selecao_saida != 's');
+    }
+    while(selecao_saida != 's');
 
     // Saída confirmada
     // TODO: guardar informação nos ficheiros
@@ -151,14 +183,16 @@ int ler_numero(char mensagem[], int min, int max)
 {
     int numero = 0;
 
-    do{
+    do
+    {
         printf("%s: ", mensagem);
         scanf("%d", &numero);
 
         if(numero < min || numero > max)
             printf("\n\nValor Invalido. Tente Novamente.\n\n");
 
-    }while(numero < min || numero > max);
+    }
+    while(numero < min || numero > max);
     return numero;
 }
 
@@ -173,14 +207,16 @@ int ler_numero(char mensagem[], int min, int max)
 float ler_real(char mensagem[], float min, float max)
 {
     float numero = 0;
-    do{
+    do
+    {
         printf("%s: ", mensagem);
         scanf("%f", &numero);
 
         if(numero < min || numero > max)
             printf("\n\nValor Invalido. Tente Novamente.\n\n");
 
-    }while(numero < min || numero > max);
+    }
+    while(numero < min || numero > max);
     return numero;
 }
 
@@ -201,7 +237,7 @@ void ler_string(char string[], char texto_questao[], int min, int max)
     /**
      * damos 100 caracteres visto que o máximo alocado para string[] em todo o código será de 100 para os nomes.
      */
-    char temp_string[100]; 
+    char temp_string[100];
 
     do
     {
@@ -218,7 +254,8 @@ void ler_string(char string[], char texto_questao[], int min, int max)
             printf("\n\nO valor indicado e demasiado comprido. Tente novamente!\n\n");
         }
 
-    } while (tamanho < min || tamanho > max);
+    }
+    while (tamanho < min || tamanho > max);
     strcpy(string, temp_string); // copia a string temporária correta para a string final
 }
 
@@ -252,7 +289,8 @@ void aplicar_tabs(char texto[], int chars_da_string_longa)
 char menu()
 {
     char escolha;
-    do{
+    do
+    {
         printf("\n========= Estatisticas =========");
         printf("\nTotal Faturado: 0000.00 euros");
         printf("\n============ Menus =============");
@@ -267,7 +305,8 @@ char menu()
         escolha = tolower(escolha);
         if(escolha != 's' && escolha != 'e' && escolha != 'u' && escolha != 't')
             printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 's' && escolha != 'e' && escolha != 'u' && escolha != 't');
+    }
+    while(escolha != 's' && escolha != 'e' && escolha != 'u' && escolha != 't');
     return escolha;
 }
 
@@ -279,7 +318,8 @@ char menu_escolas()
 {
     // Não é utilizado um system("cls") aqui de forma a que mensagens de erro possam ser apresentadas ao utilizador
     char escolha;
-    do{
+    do
+    {
         printf("\n======== Escolas =========");
         printf("\n[R] Registar Escola");
         printf("\n[C] Consultar Lista");
@@ -291,7 +331,8 @@ char menu_escolas()
         escolha = tolower(escolha);
         if(escolha != 'r' && escolha != 'c' && escolha != 'v')
             printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
+    }
+    while(escolha != 'r' && escolha != 'c' && escolha != 'v');
     return escolha;
 }
 
@@ -318,7 +359,30 @@ char menu_transacoes()
     }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
     return escolha;
 }
+/**
+ * @brief Desenha o menu de opções relacionadas aos utilizadores
+ * @return char A escolha do utilizador converte a letra para minuscula
+ */
+char menu_utilizadores()
+{
+    char escolha;
+    do
+    {
+        printf("\n======== Utilizadores =========");
+        printf("\n[R] Registar Utilizador");
+        printf("\n[C] Consultar Utilizadores");
+        printf("\n[V] Voltar ao Menu Anterior");
+        printf("\n==========================");
 
+        printf("\nOpcao: ");
+        scanf(" %c", &escolha);
+        escolha = tolower(escolha);
+        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
+            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
+    }
+    while(escolha != 'r' && escolha != 'c' && escolha != 'v');
+    return escolha;
+}
 /**
  * @brief
  * Pede as informações necessárias e regista numa escola no vetor de estruturas t_escola
@@ -326,7 +390,7 @@ char menu_transacoes()
  * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para determinar
  * o índice do vetor onde a informação será guardada.
  */
-void registar_escola(t_escola escolas[], int *num_registos)
+void registar_escola(t_escola escolas[], int * num_registos)
 {
     if(*num_registos < MAX_ESCOLAS)
     {
@@ -382,6 +446,39 @@ void listar_utilizadores_paginado(t_escola escolas[], int *registos_escolas)
     }while(selecao = 'v');
 }
 
+void registar_utilizadores(t_utilizador utilizadores[],int*num_registos)
+{
+    utilizadores[*num_registos].identificador=utilizadores[*num_registos].identificador+1;
+    do{
+        printf("Insira o identificador da escola: ");
+        scanf(" %i",&utilizadores[*num_registos].escola);
+        if(utilizadores[*num_registos].escola!=1&&utilizadores[*num_registos].escola!=2&&utilizadores[*num_registos].escola!=3&&utilizadores[*num_registos].escola!=4
+           &&utilizadores[*num_registos].escola!=5)
+            printf("O identificador da escola está inválido!\n");
+    }while(utilizadores[*num_registos].escola!=1&&utilizadores[*num_registos].escola!=2&&utilizadores[*num_registos].escola!=3&&utilizadores[*num_registos].escola!=4
+           &&utilizadores[*num_registos].escola!=5);
+
+    ler_string(utilizadores[*num_registos].nome,"Indique o seu nome: ",3,100);
+
+    do{
+        printf("Insira o NIF: ");
+        scanf(" %i",&utilizadores[*num_registos].NIF);
+        if(utilizadores[*num_registos].NIF<9&&utilizadores[*num_registos].NIF>9)
+            printf("O NIF tem de ter exatamente 9 dígitos!\n");
+    }while(utilizadores[*num_registos].NIF==9);
+
+    do{
+        printf("Escolha o tipo de utilizador consoante a próxima linha:\n");
+        printf("Estudante - 1\tDocente - 2\tFuncionário - 3\n");
+        scanf(" %i",&utilizadores[*num_registos].tipo);
+        if(utilizadores[*num_registos].tipo!=0&&utilizadores[*num_registos].tipo!=1&&utilizadores[*num_registos].tipo!=2)
+            printf("Insira um um tipo de utilizador permitido!\n");
+    }while(utilizadores[*num_registos].tipo!=0&&utilizadores[*num_registos].tipo!=1&&utilizadores[*num_registos].tipo!=2);
+
+    ler_string(utilizadores[*num_registos].email,"Indique o email: ",5,100);
+
+}
+
 /**
  * @brief Lista todas as escolas registadas
  * @param escolas Vetor de estruturas do tipo t_escola onde a informação está guardada.
@@ -424,6 +521,10 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
         printf("\n\nNao existem escolas registadas\n\n");
     }
 }
+void consultar_utilizadores(t_utilizador utilizadores[],int*num_registos)
+{
+
+}
 
 /**
  * @brief
@@ -433,7 +534,8 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
 char confirmar_saida()
 {
     char resposta;
-    do{
+    do
+    {
         printf("\nTem a certeza que pretende sair (s/n)? ");
         scanf(" %c", &resposta);
         resposta = tolower(resposta);
@@ -441,7 +543,8 @@ char confirmar_saida()
         if(resposta != 's' && resposta != 'n')
             printf("\n\nValor Invalido. Tente Novamente!\n\n");
 
-    }while(resposta != 's' && resposta != 'n');
+    }
+    while(resposta != 's' && resposta != 'n');
     return resposta;
 }
 
