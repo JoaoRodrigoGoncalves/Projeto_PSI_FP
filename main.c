@@ -179,7 +179,7 @@ int main()
  * @param max Valor máximo aceitável
  * @return int
 */
-int ler_numero(char mensagem[], int min, int max)
+int ler_inteiro(char mensagem[], int min, int max)
 {
     int numero = 0;
 
@@ -337,29 +337,6 @@ char menu_escolas()
 }
 
 /**
- * @brief Desenha o menu de opções relacionadas com transações
- * @return char A escolha do utilizador (minuscula)
- */
-char menu_transacoes()
-{
-    system("cls");
-    char escolha;
-    do{
-        printf("\n====== Transacoes =======");
-        printf("\n[R] Registar Transacao");
-        printf("\n[C] Consultar Lista");
-        printf("\n[V] Voltar ao Menu Anterior");
-        printf("\n=========================");
-
-        printf("\nOpcao: ");
-        scanf(" %c", &escolha);
-        escolha = tolower(escolha);
-        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
-            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
-    return escolha;
-}
-/**
  * @brief Desenha o menu de opções relacionadas aos utilizadores
  * @return char A escolha do utilizador converte a letra para minuscula
  */
@@ -383,6 +360,31 @@ char menu_utilizadores()
     while(escolha != 'r' && escolha != 'c' && escolha != 'v');
     return escolha;
 }
+
+/**
+ * @brief Desenha o menu de opções relacionadas com transações
+ * @return char A escolha do utilizador (minuscula)
+ */
+char menu_transacoes()
+{
+    system("cls");
+    char escolha;
+    do{
+        printf("\n====== Transacoes =======");
+        printf("\n[R] Registar Transacao");
+        printf("\n[C] Consultar Lista");
+        printf("\n[V] Voltar ao Menu Anterior");
+        printf("\n=========================");
+
+        printf("\nOpcao: ");
+        scanf(" %c", &escolha);
+        escolha = tolower(escolha);
+        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
+            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
+    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
+    return escolha;
+}
+
 /**
  * @brief
  * Pede as informações necessárias e regista numa escola no vetor de estruturas t_escola
@@ -390,7 +392,7 @@ char menu_utilizadores()
  * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para determinar
  * o índice do vetor onde a informação será guardada.
  */
-void registar_escola(t_escola escolas[], int * num_registos)
+void registar_escola(t_escola escolas[], int *num_registos)
 {
     if(*num_registos < MAX_ESCOLAS)
     {
@@ -446,20 +448,18 @@ void listar_utilizadores_paginado(t_escola escolas[], int *registos_escolas)
     }while(selecao = 'v');
 }
 
-void registar_utilizadores(t_utilizador utilizadores[],int*num_registos)
+/**
+ * @brief 
+ * 
+ * @param utilizadores 
+ * @param num_registos 
+ */
+void registar_utilizadores(t_utilizador utilizadores[], int *num_registos)
 {
-    utilizadores[*num_registos].identificador=utilizadores[*num_registos].identificador+1;
-    do{
-        printf("Insira o identificador da escola: ");
-        scanf(" %i",&utilizadores[*num_registos].escola);
-        if(utilizadores[*num_registos].escola!=1&&utilizadores[*num_registos].escola!=2&&utilizadores[*num_registos].escola!=3&&utilizadores[*num_registos].escola!=4
-           &&utilizadores[*num_registos].escola!=5)
-            printf("O identificador da escola está inválido!\n");
-    }while(utilizadores[*num_registos].escola!=1&&utilizadores[*num_registos].escola!=2&&utilizadores[*num_registos].escola!=3&&utilizadores[*num_registos].escola!=4
-           &&utilizadores[*num_registos].escola!=5);
-
-    ler_string(utilizadores[*num_registos].nome,"Indique o seu nome: ",3,100);
-
+    utilizadores[*num_registos].identificador = utilizadores[*num_registos].identificador + 1;
+    utilizadores[*num_registos].escola = ler_inteiro("Insira o identificador da escola", 1, 5);
+    ler_string(utilizadores[*num_registos].nome, "Indique o seu nome", 3, 100);
+    
     do{
         printf("Insira o NIF: ");
         scanf(" %i",&utilizadores[*num_registos].NIF);
@@ -521,6 +521,7 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
         printf("\n\nNao existem escolas registadas\n\n");
     }
 }
+
 void consultar_utilizadores(t_utilizador utilizadores[],int*num_registos)
 {
 
