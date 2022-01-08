@@ -1,8 +1,0 @@
-# depslib dependency file v1.0
-1641554997 source:c:\universidade\fp\projeto_psi_fp\main.c
-	<stdio.h>
-	<stdlib.h>
-	<ctype.h>
-	<string.h>
-	<math.h>
-

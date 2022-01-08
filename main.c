@@ -540,6 +540,26 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos)
 }
 
 /**
+ * @brief
+ * Pede as informações necessárias e regista o utilizador no vetor de estruturas t_utilizador
+ * @param utilizadores vetor de estruturas do tipo t_utilizador onde a informação será guardada
+ * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para determinar
+ * o índice do vetor onde a informação será guardada.
+ */
+void registar_utilizadores(t_utilizador utilizadores[],int*num_registos)
+{
+    system("cls");
+    utilizadores[*num_registos].escola=ler_numero("Insira o identificador da escola a que pertence",1,5);
+    ler_string(utilizadores[*num_registos].nome,"Indique o seu nome ",3,100);
+    utilizadores[*num_registos].NIF=ler_numero("Insira o NIF",100000000,299999999);
+    printf("0-Estudante\t1-Funcionário\t2-Docente\n");
+    utilizadores[*num_registos].tipo=ler_numero("Insira o tipo de utilizador ",0,2);
+    ler_string(utilizadores[*num_registos].email,"Indique o email ",5,100);
+    *num_registos=*num_registos+1;
+    utilizadores[*num_registos].identificador=*num_registos;
+}
+
+/**
  * @brief Lista todas as escolas registadas
  * @param escolas Vetor de estruturas do tipo t_escola onde a informação está guardada.
  * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para iterar pelo vetor.
@@ -583,18 +603,32 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
 }
 
 /**
- * @brief ** IMPLEMENTAÇÃO TEMPOPRÁRIA **
- * @param utilizadores 
- * @param num_registos 
+ * @brief Lista todos os utilizadores existentes
+ * @param utilizadores Vetor de estruturas do tipo t_utilizador onde a informação está guardada
+ * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para iterar pelo vetor.
  */
-void consultar_utilizadores(t_utilizador utilizadores[], int *num_registos)
+void consultar_utilizadores(t_utilizador utilizadores[],int*num_registos)
 {
-    if(*num_registos > 0)
-    {
-        for(int i = 0; i < *num_registos; i++)
-        {
-            printf("\n%d\t%s\t%d\t%s\t%d\t%d", utilizadores[i].identificador, utilizadores[i].nome, utilizadores[i].tipo, utilizadores[i].email, utilizadores[i].escola, utilizadores[i].NIF);
+    int posicao;
+
+    printf("\n\nID\t");
+    aplicar_tabs("Escola",1 );
+    aplicar_tabs("Nome",1);
+    aplicar_tabs("NIF",1);
+    aplicar_tabs("Tipo",1);
+    aplicar_tabs("Email",1);
+    if(*num_registos>0){
+        for(posicao=0;posicao<*num_registos;posicao++){
+            printf("\n%d\t", utilizadores[posicao].identificador);
+            printf("%d\t",utilizadores[posicao].escola);
+            printf("%s\t",utilizadores[posicao].nome);
+            printf("%d\t",utilizadores[posicao].NIF);
+            printf("%d\t",utilizadores[posicao].tipo);
+            printf("%s\t",utilizadores[posicao].email);
         }
+    }
+    else{
+        printf("\n\nNao existem escolas registadas\n\n");
     }
 }
 
