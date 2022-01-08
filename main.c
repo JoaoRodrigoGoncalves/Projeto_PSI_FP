@@ -64,6 +64,7 @@ int ler_inteiro(char [], int, int);
 float ler_real(char [], float, float);
 void ler_string(char [], char [], int, int);
 void aplicar_tabs(char [], int);
+void validarnif(char [],char[],char[]);
 
 // menus
 
@@ -368,38 +369,24 @@ void registar_escola(t_escola escolas[], int * num_registos)
     strcpy(escolas[*num_registos-1].campus, campus);
     strcpy(escolas[*num_registos-1].localidade, localidade);
 }
-
+/**
+ * @brief
+ * Pede as informações necessárias e regista o utilizador no vetor de estruturas t_utilizador
+ * @param utilizadores vetor de estruturas do tipo t_utilizador onde a informação será guardada
+ * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para determinar
+ * o índice do vetor onde a informação será guardada.
+ */
 void registar_utilizadores(t_utilizador utilizadores[],int*num_registos)
 {
-    utilizadores[*num_registos].identificador=utilizadores[*num_registos].identificador+1;
-    do{
-        printf("Insira o identificador da escola: ");
-        scanf(" %i",&utilizadores[*num_registos].escola);
-        if(utilizadores[*num_registos].escola!=1&&utilizadores[*num_registos].escola!=2&&utilizadores[*num_registos].escola!=3&&utilizadores[*num_registos].escola!=4
-           &&utilizadores[*num_registos].escola!=5)
-            printf("O identificador da escola está inválido!\n");
-    }while(utilizadores[*num_registos].escola!=1&&utilizadores[*num_registos].escola!=2&&utilizadores[*num_registos].escola!=3&&utilizadores[*num_registos].escola!=4
-           &&utilizadores[*num_registos].escola!=5);
-
-    ler_string(utilizadores[*num_registos].nome,"Indique o seu nome: ",3,100);
-
-    do{
-        printf("Insira o NIF: ");
-        scanf(" %i",&utilizadores[*num_registos].NIF);
-        if(utilizadores[*num_registos].NIF<9&&utilizadores[*num_registos].NIF>9)
-            printf("O NIF tem de ter exatamente 9 dígitos!\n");
-    }while(utilizadores[*num_registos].NIF==9);
-
-    do{
-        printf("Escolha o tipo de utilizador consoante a próxima linha:\n");
-        printf("Estudante - 1\tDocente - 2\tFuncionário - 3\n");
-        scanf(" %i",&utilizadores[*num_registos].tipo);
-        if(utilizadores[*num_registos].tipo!=0&&utilizadores[*num_registos].tipo!=1&&utilizadores[*num_registos].tipo!=2)
-            printf("Insira um um tipo de utilizador permitido!\n");
-    }while(utilizadores[*num_registos].tipo!=0&&utilizadores[*num_registos].tipo!=1&&utilizadores[*num_registos].tipo!=2);
-
-    ler_string(utilizadores[*num_registos].email,"Indique o email: ",5,100);
-
+    system("cls");
+    utilizadores[*num_registos].escola=ler_numero("Insira o identificador da escola a que pertence",1,5);
+    ler_string(utilizadores[*num_registos].nome,"Indique o seu nome ",3,100);
+    utilizadores[*num_registos].NIF=ler_numero("Insira o NIF",100000000,299999999);
+    printf("0-Estudante\t1-Funcionário\t2-Docente\n");
+    utilizadores[*num_registos].tipo=ler_numero("Insira o tipo de utilizador ",0,2);
+    ler_string(utilizadores[*num_registos].email,"Indique o email ",5,100);
+    *num_registos=*num_registos+1;
+    utilizadores[*num_registos].identificador=*num_registos;
 }
 
 /**
@@ -443,9 +430,34 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
         printf("\n\nNao existem escolas registadas\n\n");
     }
 }
+/**
+ * @brief Lista todos os utilizadores existentes
+ * @param utilizadores Vetor de estruturas do tipo t_utilizador onde a informação está guardada
+ * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para iterar pelo vetor.
+ */
 void consultar_utilizadores(t_utilizador utilizadores[],int*num_registos)
 {
+    int posicao;
 
+    printf("\n\nID\t");
+    aplicar_tabs("Escola",1 );
+    aplicar_tabs("Nome",1);
+    aplicar_tabs("NIF",1);
+    aplicar_tabs("Tipo",1);
+    aplicar_tabs("Email",1);
+    if(*num_registos>0){
+        for(posicao=0;posicao<*num_registos;posicao++){
+            printf("\n%d\t", utilizadores[posicao].identificador);
+            printf("%d\t",utilizadores[posicao].escola);
+            printf("%s\t",utilizadores[posicao].nome);
+            printf("%d\t",utilizadores[posicao].NIF);
+            printf("%d\t",utilizadores[posicao].tipo);
+            printf("%s\t",utilizadores[posicao].email);
+        }
+    }
+    else{
+        printf("\n\nNao existem escolas registadas\n\n");
+    }
 }
 
 /**
