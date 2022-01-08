@@ -64,7 +64,7 @@ int ler_inteiro(char [], int, int);
 float ler_real(char [], float, float);
 void ler_string(char [], char [], int, int);
 void aplicar_tabs(char [], int);
-void listar_utilizadores_paginado(t_escola [], int *);
+void listar_utilizadores_paginado(t_utilizador [], int *);
 
 // menus
 
@@ -124,7 +124,6 @@ int main()
                 switch(menu_utilizadores())
                 {
                 case 'r':
-                    //consultar_escolas(escolas,&escolas_registadas);
                     registar_utilizadores(utilizadores, &utilizadores_registados);
                     break;
 
@@ -440,11 +439,62 @@ void registar_transacao(t_transacao transacoes[], int *quantidade_registos_trans
  * @param escolas 
  * @param registos_escolas 
  */
-void listar_utilizadores_paginado(t_escola escolas[], int *registos_escolas)
+void listar_utilizadores_paginado(t_utilizador utilizadores[], int *registos_utilizadores)
 {
-    char selecao; // v = voltar, a = anterior, p = proxima
+    char selecao = '0'; // v = voltar, a = anterior, p = proxima
+    int posicao, offset = 0, max_char_nome = 0, max_char_tipo = 0; // id, NIF e id da escola não precisam de ser calculados visto que têm caracteres fixos
+    
+    for(posicao; posicao < *registos_utilizadores; posicao++)
+    {
+        max_char_nome = (strlen(utilizadores[posicao].nome) > max_char_nome ? strlen(utilizadores[posicao].nome) : max_char_nome);
+    }
+    
     do{
+        printf("\n#\tTipo\t\t");
+        aplicar_tabs("Nome", max_char_nome);
+        printf("NIF\t\tEscola\tSaldo");
+
+        for(/* offset */; offset < (*registos_utilizadores); offset++)
+        {
+            printf("\n%d\t", utilizadores[offset].identificador);
+            switch(utilizadores[offset].tipo)
+            {
+                case '0':
+                    aplicar_tabs("Estudante", 11);
+                    break;
+
+                case '1':
+                    aplicar_tabs("Docente", 11);
+                    break;
+                
+                case '2':
+                    aplicar_tabs("Funcionario", 11);
+                    break;
+            }
+            aplicar_tabs(utilizadores[offset].nome, max_char_nome);
+            printf("%d\t%d\tsaldo", utilizadores[offset].NIF, utilizadores[offset].escola);
+        }
+        printf("\nPagina %d de %d", (offset/25)+1, ceil(*registos_utilizadores/25)); //confirmar se as contas estão certas
+
+        do{
+            printf("\n(v)oltar, (a)nterior, (p)roxima? ");
+            scanf(" %c", &selecao);
+            if(selecao != 'v' && selecao != 'a' && selecao != 'p')
+                printf("\nOpcao Invalida. Tente Novamente.\n");
+            
+        }while(selecao != 'v' && selecao != 'a' && selecao != 'p');
         
+        if(selecao == 'p')
+        {
+            if((offset + 25) < *registos_utilizadores)
+                offset += 25;
+        }
+
+        if(selecao == 'a')
+        {
+            if((offset-25) > 0)
+                offset -= 25;
+        }
     }while(selecao = 'v');
 }
 
