@@ -53,7 +53,7 @@ typedef struct
 {
     int identificador;
     int utilizador; //indentificador do utilizador
-    char tipo[30]; // tipo de transação (Carregamento/Pagamento) uma estrutura?
+    char tipo[30];
     float valor; // mesma cena do que o salto do t_utilizador;
     t_data data;
     t_hora hora;
@@ -92,7 +92,7 @@ void guardar_transacoes(t_transacao [], int *);
 
 void registar_escola(t_escola [], int *);
 void consultar_escolas(t_escola [], int *);
-void registar_transacao(t_transacao [], int *, int *, t_utilizador [], int *);
+void registar_transacao(t_transacao [], int *, t_utilizador [], int *, t_escola [], int *);
 void consultar_transacoes(t_transacao [], int *);
 void registar_utilizadores(t_utilizador [],int *, t_escola [], int *);
 void consultar_utilizadores(t_utilizador [], int *, t_escola [], int *);
@@ -143,7 +143,6 @@ int main()
                             break;
 
                         case 'c':
-                            //consultar_utilizadores(utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
                             listar_utilizadores_paginado(utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
                             break;
 
@@ -161,7 +160,7 @@ int main()
                     switch(menu_transacoes())
                     {
                         case 'r':
-                            registar_transacao(transacoes, &transacoes_registadas, &escolas_registadas, utilizadores, &utilizadores_registados);
+                            registar_transacao(transacoes, &transacoes_registadas, utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
                             break;
                         
                         case 'c':
@@ -294,7 +293,7 @@ void aplicar_tabs(char texto[], int chars_da_string_longa)
 }
 
 /**
- * @brief Permite ao utilizador selecionar uma opção da array opcoes. ** Não contém nenhum simbolo no final da mensagem de forma a permitir o uso de ? e : **
+ * @brief Permite ao utilizador selecionar uma opção da array opcoes. ** Não contém nenhum simbolo no final da mensagem de forma a permitir o uso de ? e : . Contém espaço**
  * @param mensagem Mensagem a ser apresentada ao utilizador
  * @param opcoes Array de opcoes que o utilizador pode escolher
  * @return char Opção selecionada pelo utilizador
@@ -306,6 +305,7 @@ char selecionar_opcao(char mensagem[], char opcoes[])
     do{
         printf("\n%s ", mensagem);
         scanf(" %c", &selecao);
+        selecao = tolower(selecao);
 
         if(!opcao_na_array(opcoes, &selecao))
             printf("\nOpcao Invalida. Tente Novamente.");
@@ -315,7 +315,7 @@ char selecionar_opcao(char mensagem[], char opcoes[])
 }
 
 /**
- * @brief Verifica se um dado char (selecao) se encontra numa dada array (opcoes)
+ * @brief Verifica se um dado char (selecao) se encontra num dado vetor (opcoes)
  * @param opcoes array de opcoes
  * @param selecao opcao selecionada
  * @return int 1 - verdadeiro, 0 - falso
@@ -335,10 +335,10 @@ int opcao_na_array(char opcoes[], char *selecao)
 }
 
 /**
- * @brief 
- * @param selecao 
- * @param offset 
- * @param num_registo 
+ * @brief Calcula e atribui os devidos valores ao offset e pagina a serem aplicados à tabela
+ * @param selecao A opção escolhida pelo utilizador (a - anterior, p - próxima)
+ * @param offset Variável utilizada pelo for loop para ler pelo vetor
+ * @param num_registo Quantidade de registos no vetor
  */
 void calcular_navegacao_tabela(char *selecao, int *offset, int *num_registo, int *pagina)
 {
@@ -346,90 +346,46 @@ void calcular_navegacao_tabela(char *selecao, int *offset, int *num_registo, int
     switch(*selecao)
     {
         case 'p':
-            // escrever código aqui para impedir que saia out of bounds
-            *offset = *offset + 1;
-            *pagina = *pagina + 1;
-            // if((*offset + MAX_LINHAS_TABELA) < *num_registo)
-            // {
-            //     if(((*offset + MAX_LINHAS_TABELA) - *num_registo) )
-            //     printf("-> a");
-            //     *offset = *offset + 1;
-            //     *pagina = *pagina + 1;
-            // }
-            // else
-            // {
-            //     printf("-> b");
-            //     *offset = *offset - MAX_LINHAS_TABELA;
-            //     *pagina = *pagina + 1;
-            // }
+            if((*offset + MAX_LINHAS_TABELA) < *num_registo)
+            {
+                *offset = *offset + 1;
+                *pagina = *pagina + 1;
+            }
+            else
+            {
+                if((*offset + 1) == *num_registo)
+                {
+                    // offset = offset - ((linhas mostradas na página) - 1 linha da diferença do for loop)
+                    *offset = *offset - (floor((double)*offset/MAX_LINHAS_TABELA)); //bug aqui
+                }
+                else
+                {
+                    *offset = *offset + 1;
+                    *pagina = *pagina + 1;
+                }
+            }
             break;
 
         case 'a':
             if((*offset - (MAX_LINHAS_TABELA*2)) > 0)
             {
-                system("cls");
-                printf("-> c\n");
-                *offset = *offset - MAX_LINHAS_TABELA;
+                if(*num_registo - *offset > MAX_LINHAS_TABELA)
+                {
+                    *offset = *offset - (MAX_LINHAS_TABELA*2);
+                }
+                else
+                {
+                    *offset = *offset - (MAX_LINHAS_TABELA + (*num_registo - *offset));
+                }
                 *pagina = *pagina - 1;
             }
             else
             {
-                system("cls");
-                printf("n-> d\n");
                 *offset = 0;
                 if(*pagina == 2)
                     *pagina = 1;
             }
             break;
-    }
-}
-
-/**
- * @brief ** FUNÇÃO EXPERIMENTAL ** Lista todos os utilizadores de forma paginada
- * @param escolas 
- * @param registos_escolas 
- */
-void listar_utilizadores_paginado(t_utilizador utilizadores[], int *registos_utilizadores, t_escola escolas[], int *registos_escolas)
-{
-    char selecao = '0', erro; // v = voltar, a = anterior, p = proxima
-    int posicao, offset = 0, pagina = 1, max_char_nome = 0, max_char_escola = 0, max_char_email = 0; // id, NIF e id da escola não precisam de ser calculados visto que têm caracteres fixos
-    
-    if(*registos_utilizadores > 0)
-    {
-        for(posicao = 0; posicao < *registos_utilizadores; posicao++)
-        {
-            max_char_nome = ((int)strlen(utilizadores[posicao].nome) > max_char_nome ? (int)strlen(utilizadores[posicao].nome) : max_char_nome);
-            max_char_escola = ((int)strlen(escolas[(utilizadores[posicao].escola - 1)].abreviatura) > max_char_escola ? (int)strlen(escolas[(utilizadores[posicao].escola - 1)].abreviatura) : max_char_escola);
-            max_char_email = ((int)strlen(utilizadores[posicao].email) > max_char_email ? (int)strlen(utilizadores[posicao].email) : max_char_email);
-        }
-        
-        do{
-            //system("cls");
-            printf("Offset: %d. Selecao: %c. Registos: %d. Pagina %d", offset, selecao, *registos_utilizadores, pagina);
-            printf("#\tTipo\t\t");
-            aplicar_tabs("Escola", max_char_escola);
-            aplicar_tabs("Nome", max_char_nome);
-            aplicar_tabs("Email", max_char_email);
-            printf("NIF\t\tSaldo");
-
-            for(/* offset */; offset < (MAX_LINHAS_TABELA * pagina) && offset < *registos_utilizadores; offset++)
-            {
-                printf("\n%d\t%s \t", utilizadores[offset].identificador, utilizadores[offset].tipo);
-                aplicar_tabs(escolas[(utilizadores[offset].escola-1)].abreviatura, max_char_escola);
-                aplicar_tabs(utilizadores[offset].nome, max_char_nome);
-                aplicar_tabs(utilizadores[offset].email, max_char_email);
-                printf("%d\t%3.2f$", utilizadores[offset].NIF, utilizadores[offset].saldo);
-            }
-            int teste = ceil((*registos_utilizadores + 1)/MAX_LINHAS_TABELA);
-            printf("\nPagina %d de %d. Existem %d utilizadores registados.", pagina, teste, *registos_utilizadores+1); //confirmar se as contas estão certas
-            
-            selecao = selecionar_opcao("(v)oltar, (a)nterior, (p)roxima?", (char[3]){'v', 'a', 'p'}); // https://stackoverflow.com/a/27281507/10935376
-            calcular_navegacao_tabela(&selecao, &offset, registos_utilizadores, &pagina);
-        }while(selecao != 'v');
-    }
-    else
-    {
-        printf("\n Sem registos a mostrar.\n");
     }
 }
 
@@ -440,22 +396,15 @@ void listar_utilizadores_paginado(t_utilizador utilizadores[], int *registos_uti
 char menu()
 {
     char escolha;
-    do{
-        printf("\n\n========= Estatisticas =========");
-        printf("\nTotal Faturado: 0000.00 euros");
-        printf("\n============ Menus =============");
-        printf("\n[E] Menu Escolas");
-        printf("\n[U] Menu Utilizadores");
-        printf("\n[T] Menu Transacoes");
-        printf("\n[S] Sair");
-        printf("\n================================");
-
-        printf("\nOpcao: ");
-        scanf(" %c", &escolha);
-        escolha = tolower(escolha);
-        if(escolha != 's' && escolha != 'e' && escolha != 'u' && escolha != 't')
-            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 's' && escolha != 'e' && escolha != 'u' && escolha != 't');
+    printf("\n\n========= Estatisticas =========");
+    printf("\nTotal Faturado: 0000.00 euros");
+    printf("\n============ Menus =============");
+    printf("\n[E] Menu Escolas");
+    printf("\n[U] Menu Utilizadores");
+    printf("\n[T] Menu Transacoes");
+    printf("\n[S] Sair");
+    printf("\n================================");
+    escolha = selecionar_opcao("Opcao:", (char[4]){'e', 'u', 't', 's'});
     return escolha;
 }
 
@@ -467,19 +416,12 @@ char menu_escolas()
 {
     // Não é utilizado um system("cls") aqui de forma a que mensagens de erro possam ser apresentadas ao utilizador
     char escolha;
-    do{
-        printf("\n======== Escolas =========");
-        printf("\n[R] Registar Escola");
-        printf("\n[C] Consultar Lista");
-        printf("\n[V] Voltar ao Menu Anterior");
-        printf("\n==========================");
-
-        printf("\nOpcao: ");
-        scanf(" %c", &escolha);
-        escolha = tolower(escolha);
-        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
-            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
+    printf("\n======== Escolas =========");
+    printf("\n[R] Registar Escola");
+    printf("\n[C] Consultar Lista");
+    printf("\n[V] Voltar ao Menu Anterior");
+    printf("\n==========================");
+    escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
 
@@ -490,19 +432,12 @@ char menu_escolas()
 char menu_utilizadores()
 {
     char escolha;
-    do{
-        printf("\n======== Utilizadores =========");
-        printf("\n[R] Registar Utilizador");
-        printf("\n[C] Consultar Utilizadores");
-        printf("\n[V] Voltar ao Menu Anterior");
-        printf("\n==========================");
-
-        printf("\nOpcao: ");
-        scanf(" %c", &escolha);
-        escolha = tolower(escolha);
-        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
-            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
+    printf("\n======== Utilizadores =========");
+    printf("\n[R] Registar Utilizador");
+    printf("\n[C] Consultar Utilizadores");
+    printf("\n[V] Voltar ao Menu Anterior");
+    printf("\n==========================");
+    escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
 
@@ -513,19 +448,12 @@ char menu_utilizadores()
 char menu_transacoes()
 {
     char escolha;
-    do{
-        printf("\n====== Transacoes =======");
-        printf("\n[R] Registar Transacao");
-        printf("\n[C] Consultar Lista");
-        printf("\n[V] Voltar ao Menu Anterior");
-        printf("\n=========================");
-
-        printf("\nOpcao: ");
-        scanf(" %c", &escolha);
-        escolha = tolower(escolha);
-        if(escolha != 'r' && escolha != 'c' && escolha != 'v')
-            printf("\n\nOpcao Desconhecida. Tente Novamente.\n");
-    }while(escolha != 'r' && escolha != 'c' && escolha != 'v');
+    printf("\n====== Transacoes =======");
+    printf("\n[R] Registar Transacao");
+    printf("\n[C] Consultar Lista");
+    printf("\n[V] Voltar ao Menu Anterior");
+    printf("\n=========================");
+    escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
 
@@ -606,11 +534,12 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
  * @brief Pede as informações necessárias e regista uma transação no vetor de estruturas t_transacao
  * @param transacoes Vetor de estruturas do tipo t_transacao onde a informação será guardada.
  * @param quantidade_registos_transacoes (Ponteiro) Quantidade de registos já realizados. Utilizado para determinar o índice do vetor onde a informação será guardada.
- * @param quantidade_registos_escolas (Ponteiro) Quantidade de registos já realizados.
  * @param utilizadores Vetor de estruturas do tipo t_utilizador.
  * @param quantidade_registos_utilizadores (Ponteiro) Quantidade de registos já realizados.
+ * @param escolas Vetor de estruturas do tipo t_escola.
+ * @param quantidade_registos_escolas (Ponteiro) Quantidade de registos já realizados.
  */
-void registar_transacao(t_transacao transacoes[], int *quantidade_registos_transacoes, int *quantidade_registos_escolas, t_utilizador utilizadores[], int *quantidade_registos_utilizadores)
+void registar_transacao(t_transacao transacoes[], int *quantidade_registos_transacoes, t_utilizador utilizadores[], int *quantidade_registos_utilizadores, t_escola escolas[], int *quantidade_registos_escolas)
 {
     if(*quantidade_registos_transacoes < MAX_TRANSACOES)
     {
@@ -618,15 +547,16 @@ void registar_transacao(t_transacao transacoes[], int *quantidade_registos_trans
         if(*quantidade_registos_escolas && *quantidade_registos_utilizadores) // se qualquer uma das variáveis for 0, a condição falha
         {
             t_transacao temp;
-            printf("\n=== Registar Transacao ===");
+            printf("\n=== Registar Transacao ===\n");
             *quantidade_registos_transacoes = *quantidade_registos_transacoes + 1;
             temp.identificador = *quantidade_registos_transacoes;
             do{
-                teste = ler_inteiro("Indique o identificador unico do utilizador", 0, MAX_UTILIZADORES);
-                //if(teste == 0)
-                    //listar_utilizadores_paginado(utilizadores, quantidade_registos_utilizadores);
+                teste = ler_inteiro("Indique o identificador unico do utilizador (0 para lista)", 0, MAX_UTILIZADORES);
+                if(teste == 0)
+                    listar_utilizadores_paginado(utilizadores, quantidade_registos_utilizadores, escolas, quantidade_registos_escolas); // não é necessário utilizar * na varável pois já é o endereço do ponteiro
             }while(teste == 0);
             temp.utilizador = teste;
+            
         }
         else
         {
@@ -685,45 +615,51 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
 }
 
 /**
- * @brief Lista todos os utilizadores existentes
- * @param utilizadores Vetor de estruturas do tipo t_utilizador onde a informação está guardada
- * @param num_registos (Ponteiro) Quantidade de registos já realizados. Utilizado para iterar pelo vetor.
+ * @brief Lista todos os utilizadores numa tabela paginada
+ * @param utilizadores Vetor de utilizadores do tipo t_utilizador
+ * @param registos_utilizadores (Ponteiro) Quantidade de utilizadores registados
+ * @param escolas Vetor de escolas do tipo t_escola. Utilizado para obter a abreviatura da escola do utilizador
+ * @param registos_escolas (Ponteiro) Quantidade de escolas registadas
  */
-void consultar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_escola escolas[], int *registos_escolas)
+void listar_utilizadores_paginado(t_utilizador utilizadores[], int *registos_utilizadores, t_escola escolas[], int *registos_escolas)
 {
-    ////////////////////////////////////////////////////////////////////////
-    int posicao, max_char_nome = 0, max_char_escola = 0, temp;
-
-    if(*num_registos > 0)
+    char selecao = '0', erro; // v = voltar, a = anterior, p = proxima
+    int posicao, offset = 0, pagina = 1, max_char_nome = 0, max_char_escola = 0, max_char_email = 0; // id, NIF e id da escola não precisam de ser calculados visto que têm caracteres fixos
+    
+    if(*registos_utilizadores > 0)
     {
-        for(posicao = 0; posicao < *num_registos; posicao++)
+        for(posicao = 0; posicao < *registos_utilizadores; posicao++)
         {
             max_char_nome = ((int)strlen(utilizadores[posicao].nome) > max_char_nome ? (int)strlen(utilizadores[posicao].nome) : max_char_nome);
+            max_char_escola = ((int)strlen(escolas[(utilizadores[posicao].escola - 1)].abreviatura) > max_char_escola ? (int)strlen(escolas[(utilizadores[posicao].escola - 1)].abreviatura) : max_char_escola);
+            max_char_email = ((int)strlen(utilizadores[posicao].email) > max_char_email ? (int)strlen(utilizadores[posicao].email) : max_char_email);
         }
+        
+        do{
+            system("cls");
+            printf("#\tTipo\t\t");
+            aplicar_tabs("Escola", max_char_escola);
+            aplicar_tabs("Nome", max_char_nome);
+            aplicar_tabs("Email", max_char_email);
+            printf("NIF\t\tSaldo");
 
-        printf("\n\nID\t");
-        aplicar_tabs("Escola", max_char_escola);
-        aplicar_tabs("Nome", max_char_nome);
-        aplicar_tabs("Tipo", 11);
-        aplicar_tabs("NIF", 9);
-        printf("Email");
-
-        for(posicao = 0; posicao < *num_registos; posicao++)
-        {
-            temp = utilizadores[posicao].escola - 1;// excesso
-            printf("\n%d\t", utilizadores[posicao].identificador);
-            printf("%s\t\t", escolas[temp].abreviatura);
-            //aplicar_tabs(escolas[utilizadores[posicao].escola - 1].abreviatura, max_char_escola);
-            aplicar_tabs(utilizadores[posicao].nome, max_char_nome);
-            aplicar_tabs(utilizadores[posicao].tipo, 11);
-            aplicar_tabs(utilizadores[posicao].NIF, 9);
-            printf("%s",utilizadores[posicao].email);
-        }
+            for(/* offset */; offset < (MAX_LINHAS_TABELA * pagina) && offset < *registos_utilizadores; offset++)
+            {
+                printf("\n%d\t%s \t", utilizadores[offset].identificador, utilizadores[offset].tipo);
+                aplicar_tabs(escolas[(utilizadores[offset].escola-1)].abreviatura, max_char_escola);
+                aplicar_tabs(utilizadores[offset].nome, max_char_nome);
+                aplicar_tabs(utilizadores[offset].email, max_char_email);
+                printf("%d\t%3.2f$", utilizadores[offset].NIF, utilizadores[offset].saldo);
+            }
+            printf("\nPagina %d de %.0f. Existem %d utilizadores registados.", pagina, ceil(((double)*registos_utilizadores + 1)/MAX_LINHAS_TABELA), *registos_utilizadores+1);
+            
+            selecao = selecionar_opcao("(v)oltar, (a)nterior, (p)roxima?", (char[3]){'v', 'a', 'p'}); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
+            calcular_navegacao_tabela(&selecao, &offset, registos_utilizadores, &pagina);
+        }while(selecao != 'v');
     }
     else
     {
-        system("cls");
-        printf("\n\nNao existem utilizadores registados\n\n");
+        printf("\n Sem registos a mostrar.\n");
     }
 }
 
