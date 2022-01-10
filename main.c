@@ -541,21 +541,35 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
  */
 void registar_transacao(t_transacao transacoes[], int *quantidade_registos_transacoes, t_utilizador utilizadores[], int *quantidade_registos_utilizadores, t_escola escolas[], int *quantidade_registos_escolas)
 {
+    t_transacao temp;
+    int identificador_utilizador, selecao_tipo;
     if(*quantidade_registos_transacoes < MAX_TRANSACOES)
     {
-        int teste;
         if(*quantidade_registos_escolas && *quantidade_registos_utilizadores) // se qualquer uma das variáveis for 0, a condição falha
         {
-            t_transacao temp;
             printf("\n=== Registar Transacao ===\n");
             *quantidade_registos_transacoes = *quantidade_registos_transacoes + 1;
             temp.identificador = *quantidade_registos_transacoes;
             do{
-                teste = ler_inteiro("Indique o identificador unico do utilizador (0 para lista)", 0, MAX_UTILIZADORES);
-                if(teste == 0)
+                identificador_utilizador = ler_inteiro("Indique o identificador unico do utilizador (0 para lista)", 0, MAX_UTILIZADORES);
+                if(identificador_utilizador == 0)
                     listar_utilizadores_paginado(utilizadores, quantidade_registos_utilizadores, escolas, quantidade_registos_escolas); // não é necessário utilizar * na varável pois já é o endereço do ponteiro
-            }while(teste == 0);
-            temp.utilizador = teste;
+            }while(identificador_utilizador == 0);
+            temp.utilizador = identificador_utilizador;
+            selecao_tipo = ler_inteiro("Indique o tipo de transacao (1 - Pagameto, 2 - Carregamento)", 1, 2);
+
+            switch(selecao_tipo)
+            {
+                case 1:
+                    strcpy(temp.tipo, "Pagamento");
+                    break;
+
+                case 2:
+                    strcpy(temp.tipo, "Carregamento");
+                    break;
+            }
+
+            
             
         }
         else
