@@ -9,25 +9,12 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #define MAX_ESCOLAS 5
 #define MAX_UTILIZADORES 200
 #define MAX_TRANSACOES 5000
 #define MAX_LINHAS_TABELA 10
-
-typedef struct
-{
-    int dia;
-    int mes;
-    int ano;
-} t_data;
-
-typedef struct
-{
-    int hora;
-    int minuto;
-    int segundo;
-} t_hora;
 
 typedef struct
 {
@@ -55,8 +42,7 @@ typedef struct
     int utilizador; //indentificador do utilizador
     char tipo[30];
     float valor; // mesma cena do que o salto do t_utilizador;
-    t_data data;
-    t_hora hora;
+    time_t tempo_registo;
 } t_transacao;
 
 // utils
@@ -70,6 +56,7 @@ void listar_utilizadores_paginado(t_utilizador [], int *, t_escola [], int *);
 char tratador_erros(char []);
 int opcao_na_array(char [], char *);
 void calcular_navegacao_tabela(char *, int *, int *, int *);
+int processar_movimento(t_transacao [], int *, t_utilizador [], int *, int *, float *);
 
 // menus
 
@@ -390,6 +377,39 @@ void calcular_navegacao_tabela(char *selecao, int *offset, int *num_registo, int
 }
 
 /**
+ * @brief 
+ * 
+ * @param transacoes 
+ * @param quantidade_transacoes_registadas 
+ * @param utilizadores 
+ * @param indice_utilizador 
+ * @param tipo_transacao 
+ * @return int 1 - sucesso, 0 - sem sucesso
+ */
+int processar_movimento(t_transacao transacoes[], int *quantidade_transacoes_registadas, t_utilizador utilizadores[], int *indice_utilizador, int *tipo_transacao, float *valor_movimento)
+{
+    if(*tipo_transacao == 1)
+    {
+        // Pagamento
+        if(utilizadores[*indice_utilizador].saldo >= *valor_movimento)
+        {
+            utilizadores[*indice_utilizador].saldo -= *valor_movimento;
+        }
+        else
+        {
+            printf("Erro: O utilizador nao tem saldo suficiente para concluir o pagamento. Saldo atual: %.2f", utilizadores[*indice_utilizador].saldo);
+            return 0;
+        }
+    }
+    else
+    {
+        // Carregamento
+        utilizadores[*indice_utilizador].saldo += *valor_movimento;
+    }
+    return 1;
+}
+
+/**
  * @brief Desenha o menu e pede uma opção ao utilizador
  * @return char A escolha do utilizador (minuscula)
  */
@@ -542,35 +562,43 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
 void registar_transacao(t_transacao transacoes[], int *quantidade_registos_transacoes, t_utilizador utilizadores[], int *quantidade_registos_utilizadores, t_escola escolas[], int *quantidade_registos_escolas)
 {
     t_transacao temp;
-    int identificador_utilizador, selecao_tipo;
+    time_t data_hora_atuais;
+    int selecao_tipo;
     if(*quantidade_registos_transacoes < MAX_TRANSACOES)
     {
         if(*quantidade_registos_escolas && *quantidade_registos_utilizadores) // se qualquer uma das variáveis for 0, a condição falha
         {
             printf("\n=== Registar Transacao ===\n");
-            *quantidade_registos_transacoes = *quantidade_registos_transacoes + 1;
-            temp.identificador = *quantidade_registos_transacoes;
+            temp.identificador = *quantidade_registos_transacoes + 1;
             do{
-                identificador_utilizador = ler_inteiro("Indique o identificador unico do utilizador (0 para lista)", 0, MAX_UTILIZADORES);
-                if(identificador_utilizador == 0)
+                temp.utilizador = ler_inteiro("Indique o identificador unico do utilizador (0 para lista)", 0, MAX_UTILIZADORES);
+                if(temp.utilizador == 0)
                     listar_utilizadores_paginado(utilizadores, quantidade_registos_utilizadores, escolas, quantidade_registos_escolas); // não é necessário utilizar * na varável pois já é o endereço do ponteiro
-            }while(identificador_utilizador == 0);
-            temp.utilizador = identificador_utilizador;
+            }while(temp.utilizador == 0);
             selecao_tipo = ler_inteiro("Indique o tipo de transacao (1 - Pagameto, 2 - Carregamento)", 1, 2);
 
-            switch(selecao_tipo)
+            if(selecao_tipo == 1)
             {
-                case 1:
-                    strcpy(temp.tipo, "Pagamento");
-                    break;
-
-                case 2:
-                    strcpy(temp.tipo, "Carregamento");
-                    break;
+                strcpy(temp.tipo, "Pagamento");
+            }
+            else
+            {
+                strcpy(temp.tipo, "Carregamento");
             }
 
-            
-            
+            temp.valor = ler_real("Indique o valor da transacao [0.00]", 0.01, 100.00);
+
+            // https://pubs.opengroup.org/onlinepubs/7908799/xsh/localtime.html
+            // https://www.youtube.com/watch?v=4j0pRe8rxhs
+
+            time(&data_hora_atuais);
+            temp.tempo_registo = data_hora_atuais; // passa a estrutura de tempo para a estrutura dos registos
+
+            if(processar_movimento(transacoes, quantidade_registos_transacoes, utilizadores, &temp.utilizador, &selecao_tipo, &temp.valor))
+            {
+                transacoes[*quantidade_registos_transacoes] = temp;
+                *quantidade_registos_transacoes = *quantidade_registos_transacoes + 1;
+            }
         }
         else
         {
