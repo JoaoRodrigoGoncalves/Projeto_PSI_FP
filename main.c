@@ -57,6 +57,8 @@ char tratador_erros(char []);
 int opcao_na_array(char [], char *);
 void calcular_navegacao_tabela(char *, int *, int *, int *, int *);
 int processar_movimento(t_utilizador [], int *, int *, float *);
+int validar_NIF(t_utilizador [], int *);
+void validar_email(char []);
 
 // menus
 
@@ -309,16 +311,16 @@ char selecionar_opcao(char mensagem[], char opcoes[])
  */
 int opcao_na_array(char opcoes[], char *selecao)
 {
-    int posicao;
+    int posicao, resultado = 0;
 
     for(posicao = 0; posicao < (int)strlen(opcoes); posicao++) // usamos strlen para obter o mesmo objetivo que sizeof visto que este ia devolver o tamanho do ponteiro, não o tamanho do vetor.
     {
         if(opcoes[posicao] == *selecao)
         {
-            return 1;
+            resultado = 1;
         }
     }
-    return 0;
+    return resultado;
 }
 
 /**
@@ -423,25 +425,87 @@ void calcular_navegacao_tabela(char *selecao, int *offset, int *num_registo, int
  */
 int processar_movimento(t_utilizador utilizadores[], int *identificador_utilizador, int *tipo_transacao, float *valor_movimento)
 {
+    int resultado = 0;
     if(*tipo_transacao == 1)
     {
         // Pagamento
         if(utilizadores[*identificador_utilizador - 1].saldo >= *valor_movimento)
         {
             utilizadores[*identificador_utilizador - 1].saldo -= *valor_movimento;
+            resultado = 1;
         }
         else
         {
-            printf("Erro: O utilizador nao tem saldo suficiente para concluir o pagamento. Saldo atual: %.2f", utilizadores[*identificador_utilizador - 1].saldo);
-            return 0;
+            printf("Erro: O utilizador nao tem saldo suficiente para concluir o pagamento. Saldo atual: %.2f EUR.\n", utilizadores[*identificador_utilizador - 1].saldo);
+            resultado =  0;
         }
     }
     else
     {
         // Carregamento
         utilizadores[*identificador_utilizador - 1].saldo += *valor_movimento;
+        resultado = 1;
     }
-    return 1;
+    return resultado;
+}
+
+/**
+ * @brief Pede um NIF ao utilizador e confirma que não está registado noutro utilizador.
+ * @param utilizadores Vetor do tipo t_utilizador com os utilizadores.
+ * @param num_registos (Ponteiro) Total de utilizadores já registados.
+ * @return int NIF
+ */
+int validar_NIF(t_utilizador utilizadores[], int *num_registos)
+{
+    int nif, posicao, nif_posicao = -1;
+
+    do{
+        if(nif_posicao != -1)
+        {
+            printf("\nO NIF indicado ja se encontra registado no utilizador \"%s\". Tente Novamente.\n", utilizadores[nif_posicao].nome);
+            nif_posicao = -1; // reiniciar a posição do NIF
+        }
+
+        nif = ler_inteiro("Indique o numero de identificacao fiscal", 100000000, 299999999);
+    
+        for(posicao = 0; posicao < *num_registos; posicao++)
+        {
+            if(utilizadores[posicao].NIF == nif)
+            {
+                nif_posicao = posicao;
+            }
+        }
+
+    }while(nif_posicao != -1);
+    return nif;
+}
+
+/**
+ * @brief Pede um email e confirma que é um válido caso contenha o caracter '@'
+ * @param email Variável onde o email será guardado
+ */
+void validar_email(char email[])
+{
+    int posicao, resultado = 0;
+    char email_temp[100];
+
+    do{
+        ler_string(email_temp, "Indique o email", 6, 100);
+        
+        for(posicao = 0; posicao < (int)strlen(email_temp); posicao++)
+        {
+            if(email_temp[posicao] == '@')
+            {
+                resultado = 1;
+            }
+        }
+
+        if(resultado == 0)
+            printf("Email invalido. Tente Novamente.\n");
+
+    }while(resultado == 0);
+
+    strcpy(email, email_temp);
 }
 
 /**
@@ -556,7 +620,7 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
         consultar_escolas(lista_escolas, registos_escolas); // mostrar lista de escolas antes de pedir o ID da escola
         utilizadores[*num_registos].escola = ler_inteiro("\n=== Registar Utilizador ===\nInsira o identificador da escola", 1, 5); // passamos um pouco mais de texto aqui visto que a função consultar_escolas() limpa a consola visto que normalmente esta é chamada nos menus
         ler_string(utilizadores[*num_registos].nome, "Indique o nome", 3, 100);
-        utilizadores[*num_registos].NIF  = ler_inteiro("Indique o NIF", 100000000, 299999999);
+        utilizadores[*num_registos].NIF  = validar_NIF(utilizadores, num_registos);
         selecao_tipo = ler_inteiro("Escolha o tipo de utilizador (Estudante - 1 | Docente - 2 | Funcionario - 3)", 1, 3);
         
         switch(selecao_tipo)
@@ -573,8 +637,8 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
                 strcpy(utilizadores[*num_registos].tipo, "Funcionario");
                 break;
         }
-        
-        ler_string(utilizadores[*num_registos].email,"Indique o email", 6, 100);
+
+        validar_email(utilizadores[*num_registos].email);        
         utilizadores[*num_registos].saldo = 0;
         *num_registos = *num_registos + 1;
         system("cls");
@@ -635,8 +699,8 @@ void registar_transacao(t_transacao transacoes[], int *quantidade_registos_trans
         {
             transacoes[*quantidade_registos_transacoes] = temp;
             *quantidade_registos_transacoes = *quantidade_registos_transacoes + 1;
+            system("cls");
         }
-        system("cls");
     }
     else
     {
@@ -728,7 +792,7 @@ void consultar_utilizadores(t_utilizador utilizadores[], int *registos_utilizado
                 aplicar_tabs(escolas[(utilizadores[offset].escola-1)].abreviatura, max_char_escola);
                 aplicar_tabs(utilizadores[offset].nome, max_char_nome);
                 aplicar_tabs(utilizadores[offset].email, max_char_email);
-                printf("%d\t%3.2f$", utilizadores[offset].NIF, utilizadores[offset].saldo);
+                printf("%d\t%6.2f EUR", utilizadores[offset].NIF, utilizadores[offset].saldo);
             }
             printf("\nPagina %d de %.0f. Existem %d utilizadores registados.", pagina, ceil(((double)*registos_utilizadores + 1)/MAX_LINHAS_TABELA), *registos_utilizadores);
             
@@ -774,7 +838,7 @@ void consultar_transacoes(t_transacao transacoes[], int* registos_transacoes, t_
                 printf("\n%d\t%d/%d/%d %d:%d:%d\t", transacoes[offset].identificador, tempo->tm_mday, tempo->tm_mon + 1, tempo->tm_year, tempo->tm_hour, tempo->tm_min, tempo->tm_sec);
                 aplicar_tabs(utilizadores[transacoes[offset].utilizador - 1].nome, max_char_nome);
                 aplicar_tabs(transacoes[offset].tipo, 12); // 12 é o máximo de caracteres
-                printf("%3.2f$", transacoes[offset].valor);
+                printf("%6.2f EUR", transacoes[offset].valor);
             }
             printf("\nPagina %d de %.0f. Existem %d transacoes registadas.", pagina, ceil(((double)*registos_transacoes + 1)/MAX_LINHAS_TABELA), *registos_transacoes);
             
@@ -784,6 +848,7 @@ void consultar_transacoes(t_transacao transacoes[], int* registos_transacoes, t_
     }
     else
     {
+        system("cls");
         printf("\n Sem registos a mostrar.\n");
     }
 }
