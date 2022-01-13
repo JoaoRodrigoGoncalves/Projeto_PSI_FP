@@ -59,6 +59,7 @@ void calcular_navegacao_tabela(char *, int *, int *, int *, int *);
 int processar_movimento(t_utilizador [], int *, int *, float *);
 int validar_NIF(t_utilizador [], int *);
 void validar_email(char []);
+int validar_id_utilizador(t_utilizador [], int*, int *);
 
 // menus
 
@@ -509,6 +510,27 @@ void validar_email(char email[])
 }
 
 /**
+ * @brief 
+ * @param utilizadores 
+ * @param quantidade_registos 
+ * @param id_a_testar 
+ * @return int 
+ */
+int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos, int *id_a_testar)
+{
+    int posicao, resultado = 0;
+
+    for(posicao = 0; posicao < *quantidade_registos; posicao++)
+    {
+        if(utilizadores[posicao].identificador == *id_a_testar)
+        {
+            resultado = 1;
+        }
+    }
+    return resultado;
+}
+
+/**
  * @brief Desenha o menu e pede uma opção ao utilizador
  * @return char A escolha do utilizador (minuscula)
  */
@@ -672,7 +694,10 @@ void registar_transacao(t_transacao transacoes[], int *quantidade_registos_trans
             temp.utilizador = ler_inteiro("Indique o identificador unico do utilizador (0 para lista)", 0, MAX_UTILIZADORES);
             if(temp.utilizador == 0)
                 consultar_utilizadores(utilizadores, quantidade_registos_utilizadores, escolas); // não é necessário utilizar * na varável pois já é o endereço do ponteiro
-        }while(temp.utilizador == 0);
+
+            if(temp.utilizador != 0 && !validar_id_utilizador(utilizadores, quantidade_registos_utilizadores, &temp.utilizador))
+                printf("Identificador invalido. Tente Novamente.");
+        }while(temp.utilizador == 0 && !validar_id_utilizador(utilizadores, quantidade_registos_utilizadores, &temp.utilizador));
         selecao_tipo = ler_inteiro("Indique o tipo de transacao (1 - Pagameto, 2 - Carregamento)", 1, 2);
 
         if(selecao_tipo == 1)
