@@ -908,7 +908,7 @@ void carregar_escolas(t_escola escolas[], int *registos_escolas)
 {
     char opcao = 'n';
     FILE *ficheiro;
-    int verificacao_leitura;
+    int verificacao_leitura, bytes, elementos;
 
     do{
         ficheiro = fopen("dados_escolas.dat", "rb");
@@ -918,14 +918,19 @@ void carregar_escolas(t_escola escolas[], int *registos_escolas)
         }
         else
         {
-            verificacao_leitura = fread(escolas, sizeof(t_escola), MAX_ESCOLAS, ficheiro);
+            fseek(ficheiro, 0L, SEEK_END);
+            bytes = ftell(ficheiro);
+            elementos = bytes/sizeof(t_escola);
+            fseek(ficheiro, 0L, SEEK_SET);
+
+            verificacao_leitura = fread(escolas, sizeof(t_escola), elementos, ficheiro);
             if(verificacao_leitura == 0)
             {
                 opcao = tratador_erros("Ocorreu um erro ao ler as escolas");
             }
             else
             {
-                *registos_escolas = verificacao_leitura;
+                *registos_escolas = elementos;
             }
             fclose(ficheiro);
         }
@@ -941,7 +946,7 @@ void carregar_utilizadores(t_utilizador utilizadores[], int *registos_utilizador
 {
     char opcao = 'n';
     FILE *ficheiro;
-    int verificacao_leitura;
+    int verificacao_leitura, bytes, elementos;
     
     do{
         ficheiro = fopen("dados_utilizadores.dat", "rb");
@@ -951,7 +956,11 @@ void carregar_utilizadores(t_utilizador utilizadores[], int *registos_utilizador
         }
         else
         {
-            verificacao_leitura = fread(utilizadores, sizeof(t_utilizador), MAX_UTILIZADORES, ficheiro);
+            fseek(ficheiro, 0L, SEEK_END);
+            bytes = ftell(ficheiro);
+            elementos = bytes/sizeof(t_escola);
+            fseek(ficheiro, 0L, SEEK_SET);
+            verificacao_leitura = fread(utilizadores, sizeof(t_utilizador), elementos, ficheiro);
             if(verificacao_leitura == 0)
             {
                 opcao = tratador_erros("Ocorreu um erro ao ler os utilizadores");
@@ -974,7 +983,7 @@ void carregar_transacoes(t_transacao transacoes[], int *registos_transacoes)
 {
     char opcao = 'n';
     FILE *ficheiro;
-    int verificacao_leitura;
+    int verificacao_leitura, bytes, elementos;
 
     do{
         ficheiro = fopen("dados_transacoes.dat", "rb");
@@ -984,7 +993,11 @@ void carregar_transacoes(t_transacao transacoes[], int *registos_transacoes)
         }
         else
         {
-            verificacao_leitura = fread(transacoes, sizeof(t_transacao), MAX_TRANSACOES, ficheiro);
+            fseek(ficheiro, 0L, SEEK_END);
+            bytes = ftell(ficheiro);
+            elementos = bytes/sizeof(t_escola);
+            fseek(ficheiro, 0L, SEEK_SET);
+            verificacao_leitura = fread(transacoes, sizeof(t_transacao), elementos, ficheiro);
             if(verificacao_leitura == 0)
             {
                 opcao = tratador_erros("Ocorreu um erro ao ler as transacoes");
