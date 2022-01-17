@@ -94,12 +94,13 @@ int main()
     t_transacao transacoes[MAX_TRANSACOES];
     int escolas_registadas = 0, utilizadores_registados = 0, transacoes_registadas = 0;
     char selecao_saida = 'n', selecao_saida_escolas = 'n', selecao_saida_transacoes = 'n', selecao_saida_utilizadores = 'n';
-    
+
     carregar_escolas(escolas, &escolas_registadas);
     carregar_utilizadores(utilizadores, &utilizadores_registados);
     carregar_transacoes(transacoes, &transacoes_registadas);
 
     do{
+        
         switch(menu())
         {
             case 'e':
@@ -109,12 +110,10 @@ int main()
                     {
                         case 'r':
                             registar_escola(escolas, &escolas_registadas);
-                            selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                             break;
 
                         case 'c':
                             consultar_escolas(escolas, &escolas_registadas);
-                            selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                             break;
 
                         case 'v':
@@ -132,12 +131,10 @@ int main()
                     {
                         case 'r':
                             registar_utilizadores(utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
-                            selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                             break;
 
                         case 'c':
                             consultar_utilizadores(utilizadores, &utilizadores_registados, escolas);
-                            selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                             break;
 
                         case 'v':
@@ -155,12 +152,10 @@ int main()
                     {
                         case 'r':
                             registar_transacao(transacoes, &transacoes_registadas, utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
-                            selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                             break;
-                        
+
                         case 'c':
                             consultar_transacoes(transacoes, &transacoes_registadas, utilizadores);
-                            selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                             break;
 
                         case 'v':
@@ -308,6 +303,7 @@ char selecionar_opcao(char mensagem[], char opcoes[])
 
     do{
         printf("\n%s ", mensagem);
+        fflush(stdin);
         scanf(" %c", &selecao);
         selecao = tolower(selecao);
 
@@ -482,7 +478,7 @@ int validar_NIF(t_utilizador utilizadores[], int *num_registos)
         }
 
         nif = ler_inteiro("Indique o numero de identificacao fiscal", 100000000, 299999999);
-    
+
         for(posicao = 0; posicao < *num_registos; posicao++)
         {
             if(utilizadores[posicao].NIF == nif)
@@ -506,7 +502,7 @@ void validar_email(char email[])
 
     do{
         ler_string(email_temp, "Indique o email", 6, 100);
-        
+
         for(posicao = 0; posicao < (int)strlen(email_temp); posicao++)
         {
             if(email_temp[posicao] == '@')
@@ -524,10 +520,10 @@ void validar_email(char email[])
 }
 
 /**
- * @brief 
- * @param utilizadores 
- * @param quantidade_registos 
- * @param id_a_testar 
+ * @brief
+ * @param utilizadores
+ * @param quantidade_registos
+ * @param id_a_testar
  * @return int 1 - id válido, 0 - id inválido
  */
 int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos, int *id_a_testar)
@@ -659,7 +655,7 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
         ler_string(utilizadores[*num_registos].nome, "Indique o nome", 3, 100);
         utilizadores[*num_registos].NIF  = validar_NIF(utilizadores, num_registos);
         selecao_tipo = ler_inteiro("Escolha o tipo de utilizador (Estudante - 1 | Docente - 2 | Funcionario - 3)", 1, 3);
-        
+
         switch(selecao_tipo)
         {
             case 1: //estudante
@@ -675,7 +671,7 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
                 break;
         }
 
-        validar_email(utilizadores[*num_registos].email);        
+        validar_email(utilizadores[*num_registos].email);
         utilizadores[*num_registos].saldo = 0;
         *num_registos = *num_registos + 1;
         system("cls");
@@ -722,7 +718,7 @@ void registar_transacao(t_transacao transacoes[], int *quantidade_registos_trans
         /**
          * Recursos utilizados para trabalhar com a biblioteca <time.h>
          * https://pubs.opengroup.org/onlinepubs/7908799/xsh/localtime.html
-         * https://www.youtube.com/watch?v=4j0pRe8rxhs 
+         * https://www.youtube.com/watch?v=4j0pRe8rxhs
          */
 
         time(&data_hora_atuais);
@@ -794,14 +790,14 @@ void consultar_escolas(t_escola escolas[], int *num_registos)
 void consultar_utilizadores(t_utilizador utilizadores[], int *registos_utilizadores, t_escola escolas[])
 {
     char selecao = '0';
-    int posicao, offset = 0, linhas_na_pagina, pagina = 1, max_char_nome = 0, max_char_escola = 0, max_char_email = 0; 
+    int posicao, offset = 0, linhas_na_pagina, pagina = 1, max_char_nome = 0, max_char_escola = 0, max_char_email = 0;
 
     /**
      * O ponteiro registos utilizadores é utilizado no resto do programa como forma de indicar o índice onde o
      * próximo registo deve ser indicado. Visto isto, e apesar de os vetores começarem em 0, esta variável
      * continua a funcionar como forma de ilustrar a quantidade de, neste caso, utilizadores registados.
      */
-    
+
     if(*registos_utilizadores > 0)
     {
         for(posicao = 0; posicao < *registos_utilizadores; posicao++) // aqui a posicao começa em 0, sendo assim, a condição verifica ATÉ ao número imediatamente anterior porque 0 também conta
@@ -810,7 +806,7 @@ void consultar_utilizadores(t_utilizador utilizadores[], int *registos_utilizado
             max_char_escola = ((int)strlen(escolas[(utilizadores[posicao].escola - 1)].abreviatura) > max_char_escola ? (int)strlen(escolas[(utilizadores[posicao].escola - 1)].abreviatura) : max_char_escola);
             max_char_email = ((int)strlen(utilizadores[posicao].email) > max_char_email ? (int)strlen(utilizadores[posicao].email) : max_char_email);
         }
-        
+
         do{
             system("cls");
             printf("#\tTipo\t\t");
@@ -828,7 +824,7 @@ void consultar_utilizadores(t_utilizador utilizadores[], int *registos_utilizado
                 printf("%d\t%6.2f EUR", utilizadores[offset].NIF, utilizadores[offset].saldo);
             }
             printf("\nPagina %d de %.0f. Existem %d utilizadores registados.", pagina, ceil(((double)*registos_utilizadores)/MAX_LINHAS_TABELA), *registos_utilizadores);
-            
+
             selecao = selecionar_opcao("(V)oltar, (A)nterior, (P)roxima?", (char[3]){'v', 'a', 'p'}); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
             calcular_navegacao_tabela(&selecao, &offset, registos_utilizadores, &pagina, &linhas_na_pagina);
         }while(selecao != 'v');
@@ -851,14 +847,14 @@ void consultar_transacoes(t_transacao transacoes[], int* registos_transacoes, t_
 {
     char selecao = '0'; // v = voltar, a = anterior, p = proxima
     int posicao, offset = 0, linhas_na_pagina, pagina = 1, max_char_nome = 0;
-    
+
     if(*registos_transacoes > 0)
     {
         for(posicao = 0; posicao < *registos_transacoes; posicao++)
         {
             max_char_nome = ((int)strlen(utilizadores[transacoes[posicao].utilizador - 1].nome) > max_char_nome ? (int)strlen(utilizadores[transacoes[posicao].utilizador - 1].nome) : max_char_nome);
         }
-        
+
         do{
             system("cls");
             printf("#\tData/Hora\t\t");
@@ -874,7 +870,7 @@ void consultar_transacoes(t_transacao transacoes[], int* registos_transacoes, t_
                 printf("%6.2f EUR", transacoes[offset].valor);
             }
             printf("\nPagina %d de %.0f. Existem %d transacoes registadas.", pagina, ceil(((double)*registos_transacoes)/MAX_LINHAS_TABELA), *registos_transacoes);
-            
+
             selecao = selecionar_opcao("(V)oltar, (A)nterior, (P)roxima?", (char[3]){'v', 'a', 'p'}); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
             calcular_navegacao_tabela(&selecao, &offset, registos_transacoes, &pagina, &linhas_na_pagina);
         }while(selecao != 'v');
@@ -909,8 +905,8 @@ char confirmar_saida()
 
 /**
  * @brief Carrega a informação do ficheiro de escolas para a memória
- * @param escolas 
- * @param registos_escolas 
+ * @param escolas
+ * @param registos_escolas
  */
 void carregar_escolas(t_escola escolas[], int *registos_escolas)
 {
@@ -947,15 +943,15 @@ void carregar_escolas(t_escola escolas[], int *registos_escolas)
 
 /**
  * @brief Carrega a informação do ficheiro de utilizadores para a memória
- * @param utilizadores 
- * @param registos_utilizadores 
+ * @param utilizadores
+ * @param registos_utilizadores
  */
 void carregar_utilizadores(t_utilizador utilizadores[], int *registos_utilizadores)
 {
     char opcao = 'n';
     FILE *ficheiro;
     int verificacao_leitura, bytes, elementos;
-    
+
     do{
         ficheiro = fopen("dados_utilizadores.dat", "rb");
         if(ficheiro == NULL)
@@ -984,8 +980,8 @@ void carregar_utilizadores(t_utilizador utilizadores[], int *registos_utilizador
 
 /**
  * @brief Carrega a informação do ficheiro de transacoes para a memória
- * @param transacoes 
- * @param registos_transacoes 
+ * @param transacoes
+ * @param registos_transacoes
  */
 void carregar_transacoes(t_transacao transacoes[], int *registos_transacoes)
 {
@@ -1021,8 +1017,8 @@ void carregar_transacoes(t_transacao transacoes[], int *registos_transacoes)
 
 /**
  * @brief Guarda no ficheiro de escolas a informação encontrada na memória
- * @param escolas 
- * @param registos_escolas 
+ * @param escolas
+ * @param registos_escolas
  */
 void guardar_escolas(t_escola escolas[], int *registos_escolas)
 {
@@ -1053,8 +1049,8 @@ void guardar_escolas(t_escola escolas[], int *registos_escolas)
 
 /**
  * @brief Guarda no ficheiro de utilizadores a informação encontrada na memória
- * @param utilizadores 
- * @param registos_utilizadores 
+ * @param utilizadores
+ * @param registos_utilizadores
  */
 void guardar_utilizadores(t_utilizador utilizadores[], int *registos_utilizadores)
 {
@@ -1085,8 +1081,8 @@ void guardar_utilizadores(t_utilizador utilizadores[], int *registos_utilizadore
 
 /**
  * @brief Guarda no ficheiro de transacoes a informação encontrada na memória
- * @param transacoes 
- * @param registo_transacoes 
+ * @param transacoes
+ * @param registo_transacoes
  */
 void guardar_transacoes(t_transacao transacoes[], int *registo_transacoes)
 {
