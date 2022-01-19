@@ -86,6 +86,8 @@ void consultar_transacoes(t_transacao [], int *, t_utilizador []);
 void registar_utilizadores(t_utilizador [],int *, t_escola [], int *);
 void consultar_utilizadores(t_utilizador [], int *, t_escola []);
 void total_faturado_por_escola(t_transacao[],int *,t_escola [],int *,t_utilizador [],int *,float []);
+float total_faturado_em_todas_as_escolas(float[]);
+float percentagem_de_fatura_por_escola(float[],float);
 
 int main()
 {
@@ -95,6 +97,7 @@ int main()
     int escolas_registadas = 0, utilizadores_registados = 0, transacoes_registadas = 0;
     char selecao_saida = 'n', selecao_saida_escolas = 'n', selecao_saida_transacoes = 'n', selecao_saida_utilizadores = 'n';
     float faturado_escola[MAX_ESCOLAS];
+    float total_faturas;
     carregar_escolas(escolas, &escolas_registadas);
     carregar_utilizadores(utilizadores, &utilizadores_registados);
     carregar_transacoes(transacoes, &transacoes_registadas);
@@ -102,6 +105,7 @@ int main()
     do
     {
         total_faturado_por_escola(transacoes, &transacoes_registadas,escolas, &escolas_registadas,utilizadores, &utilizadores_registados,faturado_escola);
+        total_faturas=total_faturado_em_todas_as_escolas(faturado_escola);
         switch(menu(faturado_escola,escolas))
         {
         case 'e':
@@ -1218,5 +1222,22 @@ void total_faturado_por_escola(t_transacao transacoes[],int *registos_transacoes
         }
     }
 }
-void percentagem_de_fatura_por_escola{
+float percentagem_de_fatura_por_escola(float total_transacao_escola[], float total_todas_escolas)
+{
+    float percentagem [MAX_ESCOLAS];
+    int indice;
+    for(indice=0;indice<MAX_ESCOLAS;indice++)
+    {
+        percentagem[indice]=(total_transacao_escola[indice] / total_todas_escolas) * 100;
+    }
+    return percentagem[MAX_ESCOLAS];
+}
+float total_faturado_em_todas_as_escolas(float total_transacoes[])
+{
+    int indice;
+    float total=0;
+    for(indice=0;indice<MAX_ESCOLAS;indice++){
+        total=total+total_transacoes[indice];
+    }
+    return total;
 }
