@@ -62,7 +62,7 @@ int validar_id_utilizador(t_utilizador [], int*, int *);
 
 // menus
 
-char menu(float [],t_escola []);
+char menu(float [],t_escola [],float);
 char menu_escolas();
 char menu_transacoes();
 char menu_utilizadores();
@@ -106,7 +106,7 @@ int main()
     {
         total_faturado_por_escola(transacoes, &transacoes_registadas,escolas, &escolas_registadas,utilizadores, &utilizadores_registados,faturado_escola);
         total_faturas=total_faturado_em_todas_as_escolas(faturado_escola);
-        switch(menu(faturado_escola,escolas))
+        switch(menu(faturado_escola,escolas,total_faturas))
         {
         case 'e':
             system("cls");
@@ -574,12 +574,12 @@ int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos,
  * @brief Desenha o menu e pede uma opção ao utilizador
  * @return char A escolha do utilizador (minuscula)
  */
-char menu(float faturado_escola[],t_escola escolas[])
+char menu(float faturado_escola[],t_escola escolas[],float total_faturas)
 {
     int indice;
     char escolha;
     printf("\n\n========= Estatisticas =========");
-    printf("\nTotal Faturado em todos os campus: 0000.00 euros");
+    printf("\nTotal Faturado em todos os campus: %.2f euros",total_faturas);
     for(indice=0;indice<MAX_ESCOLAS;indice++)
     {
         printf("\n%s : %.2f$",escolas[indice].abreviatura,faturado_escola[indice]);
