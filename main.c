@@ -62,10 +62,11 @@ int validar_id_utilizador(t_utilizador [], int*, int *);
 
 // menus
 
-char menu(float [],t_escola []);
+char menu(float [], int *, t_escola []);
 char menu_escolas();
 char menu_transacoes();
 char menu_utilizadores();
+char menu_estatistica();
 char confirmar_saida();
 
 // funções de dados
@@ -85,9 +86,8 @@ void registar_transacao(t_transacao [], int *, t_utilizador [], int *, t_escola 
 void consultar_transacoes(t_transacao [], int *, t_utilizador []);
 void registar_utilizadores(t_utilizador [],int *, t_escola [], int *);
 void consultar_utilizadores(t_utilizador [], int *, t_escola []);
-void total_faturado_por_escola(t_transacao[],int *,t_escola [],int *,t_utilizador [],int *,float []);
-float total_faturado_em_todas_as_escolas(float[]);
-float percentagem_de_fatura_por_escola(float[],float);
+void total_faturado_por_escola(t_transacao [], int *, t_escola [], int *, t_utilizador [], float []);
+void percentagem_faturacao_por_escola(t_escola [], float [], int *);
 
 int main()
 {
@@ -95,106 +95,126 @@ int main()
     t_utilizador utilizadores[MAX_UTILIZADORES];
     t_transacao transacoes[MAX_TRANSACOES];
     int escolas_registadas = 0, utilizadores_registados = 0, transacoes_registadas = 0;
-    char selecao_saida = 'n', selecao_saida_escolas = 'n', selecao_saida_transacoes = 'n', selecao_saida_utilizadores = 'n';
+    char selecao_saida = 'n', selecao_saida_escolas = 'n', selecao_saida_transacoes = 'n', selecao_saida_utilizadores = 'n', selecao_saida_estatistica = 'n';
     float faturado_escola[MAX_ESCOLAS];
-    float total_faturas;
+    system("cls"); // limpamos aqui para poder mostrar possíveis erros com o carregamento de dados para a memória
     carregar_escolas(escolas, &escolas_registadas);
     carregar_utilizadores(utilizadores, &utilizadores_registados);
     carregar_transacoes(transacoes, &transacoes_registadas);
 
     do
     {
-        total_faturado_por_escola(transacoes, &transacoes_registadas,escolas, &escolas_registadas,utilizadores, &utilizadores_registados,faturado_escola);
-        total_faturas=total_faturado_em_todas_as_escolas(faturado_escola);
-        switch(menu(faturado_escola,escolas))
+        total_faturado_por_escola(transacoes, &transacoes_registadas, escolas, &escolas_registadas, utilizadores, faturado_escola);
+        switch(menu(faturado_escola, &escolas_registadas, escolas))
         {
-        case 'e':
-            system("cls");
-            do
-            {
-                switch(menu_escolas())
+            case 'e':
+                system("cls");
+                do
                 {
-                case 'r':
-                    registar_escola(escolas, &escolas_registadas);
-                    selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
-                    break;
+                    switch(menu_escolas())
+                    {
+                    case 'r':
+                        registar_escola(escolas, &escolas_registadas);
+                        selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
+                        break;
 
-                case 'c':
-                    consultar_escolas(escolas, &escolas_registadas);
-                    selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
-                    break;
+                    case 'c':
+                        consultar_escolas(escolas, &escolas_registadas);
+                        selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
+                        break;
 
-                case 'v':
-                    system("cls");
-                    selecao_saida_escolas = 's';
-                    break;
+                    case 'v':
+                        system("cls");
+                        selecao_saida_escolas = 's';
+                        break;
+                    }
                 }
-            }
-            while(selecao_saida_escolas != 's');
-            break;
+                while(selecao_saida_escolas != 's');
+                break;
 
-        case 'u':
-            system("cls");
-            do
-            {
-                switch(menu_utilizadores())
+            case 'u':
+                system("cls");
+                do
                 {
-                case 'r':
-                    registar_utilizadores(utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
-                    selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
-                    break;
+                    switch(menu_utilizadores())
+                    {
+                    case 'r':
+                        registar_utilizadores(utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
+                        selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
+                        break;
 
-                case 'c':
-                    consultar_utilizadores(utilizadores, &utilizadores_registados, escolas);
-                    selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
-                    break;
+                    case 'c':
+                        consultar_utilizadores(utilizadores, &utilizadores_registados, escolas);
+                        selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
+                        break;
 
-                case 'v':
-                    system("cls");
-                    selecao_saida_utilizadores = 's';
-                    break;
+                    case 'v':
+                        system("cls");
+                        selecao_saida_utilizadores = 's';
+                        break;
+                    }
                 }
-            }
-            while(selecao_saida_utilizadores != 's');
-            break;
+                while(selecao_saida_utilizadores != 's');
+                break;
 
-        case 't':
-            system("cls");
-            do
-            {
-                switch(menu_transacoes())
+            case 't':
+                system("cls");
+                do
                 {
-                case 'r':
-                    registar_transacao(transacoes, &transacoes_registadas, utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
-                    selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
-                    break;
+                    switch(menu_transacoes())
+                    {
+                    case 'r':
+                        registar_transacao(transacoes, &transacoes_registadas, utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
+                        selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
+                        break;
 
-                case 'c':
-                    consultar_transacoes(transacoes, &transacoes_registadas, utilizadores);
-                    selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
-                    break;
+                    case 'c':
+                        consultar_transacoes(transacoes, &transacoes_registadas, utilizadores);
+                        selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
+                        break;
 
 
-                case 'v':
-                    system("cls");
-                    selecao_saida_transacoes = 's';
-                    break;
+                    case 'v':
+                        system("cls");
+                        selecao_saida_transacoes = 's';
+                        break;
+                    }
                 }
-            }
-            while(selecao_saida_transacoes != 's');
-            break;
+                while(selecao_saida_transacoes != 's');
+                break;
 
-        case 'g':
-            guardar_escolas(escolas, &escolas_registadas);
-            guardar_utilizadores(utilizadores, &utilizadores_registados);
-            guardar_transacoes(transacoes, &transacoes_registadas);
-            system("cls");
-            printf("Operacao completa.");
-            break;
+            case 'a':
+                system("cls");
+                do{
+                    switch(menu_estatistica())
+                    {
+                        case 'p':
+                            percentagem_faturacao_por_escola(escolas, faturado_escola, &escolas_registadas);
+                            break;
 
-        case 's':
-            selecao_saida = confirmar_saida();
-            break;
+                        case 'd':
+                            // pesquisa horizontal
+                            break;
+
+                        case 'v':
+                            system("cls");
+                            selecao_saida_estatistica = 's';
+                            break;
+                    }
+                }while(selecao_saida_estatistica != 's');
+                break;
+
+            case 'g':
+                guardar_escolas(escolas, &escolas_registadas);
+                guardar_utilizadores(utilizadores, &utilizadores_registados);
+                guardar_transacoes(transacoes, &transacoes_registadas);
+                system("cls");
+                printf("Operacao completa.");
+                break;
+
+            case 's':
+                selecao_saida = confirmar_saida();
+                break;
         }
     }
     while(selecao_saida != 's');
@@ -550,10 +570,10 @@ void validar_email(char email[])
 }
 
 /**
- * @brief
- * @param utilizadores
- * @param quantidade_registos
- * @param id_a_testar
+ * @brief Verifica que um id de utilizador é válido
+ * @param utilizadores Vetor do tipo t_utilizador com os utilizadores registados.
+ * @param quantidade_registos (Ponteiro) Quantidade de utilizadores registados.
+ * @param id_a_testar (Ponteiro) ID a verificar.
  * @return int 1 - id válido, 0 - id inválido
  */
 int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos, int *id_a_testar)
@@ -574,26 +594,30 @@ int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos,
  * @brief Desenha o menu e pede uma opção ao utilizador
  * @return char A escolha do utilizador (minuscula)
  */
-char menu(float faturado_escola[],t_escola escolas[])
+char menu(float faturado_escola[], int *quantidade_escolas, t_escola escolas[])
 {
     int indice;
+    float total = 0;
     char escolha;
-    printf("\n\n========= Estatisticas =========");
-    printf("\nTotal Faturado em todos os campus: 0000.00 euros");
-    for(indice=0;indice<MAX_ESCOLAS;indice++)
+    if(*quantidade_escolas > 0)
     {
-        printf("\n%s : %.2f$",escolas[indice].abreviatura,faturado_escola[indice]);
+        printf("\n========= Estatisticas =========");
+        for(indice = 0; indice < *quantidade_escolas; indice++)
+        {
+            printf("\n%s: %.2f Euros", escolas[indice].abreviatura, faturado_escola[indice]);
+            total += faturado_escola[indice];
+        }
     }
+    printf("\nTotal Faturado em todos os campus: %.2f Euros", total);
     printf("\n============ Menus =============");
     printf("\n[E] Menu Escolas");
     printf("\n[U] Menu Utilizadores");
     printf("\n[T] Menu Transacoes");
+    printf("\n[A] Menu de Estatisticas");
     printf("\n[G] Guardar Dados");
     printf("\n[S] Sair");
     printf("\n================================");
-    escolha = selecionar_opcao("Opcao:", (char[5])
-    {'e', 'u', 't', 'g', 's'
-    });
+    escolha = selecionar_opcao("Opcao:", (char[6]){'e', 'u', 't', 'a', 'g', 's'});
     return escolha;
 }
 
@@ -610,9 +634,7 @@ char menu_escolas()
     printf("\n[C] Consultar Lista");
     printf("\n[V] Voltar ao Menu Anterior");
     printf("\n==========================");
-    escolha = selecionar_opcao("Opcao:", (char[3])
-    {'r', 'c', 'v'
-    });
+    escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
 
@@ -628,9 +650,7 @@ char menu_utilizadores()
     printf("\n[C] Consultar Utilizadores");
     printf("\n[V] Voltar ao Menu Anterior");
     printf("\n==========================");
-    escolha = selecionar_opcao("Opcao:", (char[3])
-    {'r', 'c', 'v'
-    });
+    escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
 
@@ -648,6 +668,80 @@ char menu_transacoes()
     printf("\n=========================");
     escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v',});
     return escolha;
+}
+
+/**
+ * @brief Desenha o menu de opções relacionadas com estatistica
+ * @return char A escolha do utilizador (minuscula)
+ */
+char menu_estatistica()
+{
+    char escolha;
+    printf("\n============ Estatistica =============");
+    printf("\n[P] Percentagem transacoes por escola");
+    printf("\n[D] Estatiscas entre duas datas");
+    printf("\n[V] Voltar ao Menu Anterior");
+    printf("\n======================================");
+    escolha = selecionar_opcao("Opcao:", (char[3]){'p', 'd', 'v',});
+    return escolha;
+}
+
+/**
+ * @brief Calcula o total faturado por cada escola registada.
+ * @param transacoes Vetor do tipo t_transacao.
+ * @param registos_transacoes (Ponteiro) Quantidade de transacoes registadas.
+ * @param escolas Vetor do tipo t_escola.
+ * @param registos_escolas (Ponteiro) Quantidade de escolas registadas.
+ * @param utilizadores Vetor do tipo t_utilizador.
+ * @param total_transacoes Vetor do tipo float onde são guardados os totais faturados por cada escola.
+ */
+void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoes, t_escola escolas[], int *registos_escolas, t_utilizador utilizadores[], float total_transacoes[])
+{
+    int indice_transacoes, indice_escolas, user_transacao, escola_user;
+
+    if (*registos_transacoes > 0)
+    {
+        for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++)
+        {
+            for (indice_transacoes = 0; indice_transacoes < *registos_transacoes; indice_transacoes++)
+            {
+                if (strcmp(transacoes[indice_transacoes].tipo, "Pagamento") == 0)
+                {
+                    user_transacao = transacoes[indice_transacoes].utilizador - 1;
+                    escola_user = utilizadores[user_transacao].escola;
+                    if (escola_user == indice_escolas + 1)
+                    {
+                        total_transacoes[indice_escolas] += transacoes[escola_user].valor;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @brief Apresenta a precentagem e valor faturado individualmente por cada escola
+ * @param escolas Vetor do tipo t_escola com as escolas registadas.
+ * @param transacoes_escolas Vetor do tipo float com as transações das escolas em que cada indice corresponde a uma escola.
+ * @param registo_escolas (Ponteiro) Quantidade de escolas registadas.
+ */
+void percentagem_faturacao_por_escola(t_escola escolas[], float transacoes_escolas[], int *registo_escolas)
+{
+    int indice;
+    float percentagens[MAX_ESCOLAS], total = 0;
+
+    for (indice = 0; indice < *registo_escolas; indice++)
+    {
+        total += transacoes_escolas[indice];
+    }
+
+    system("cls");
+    printf("\n============ Prcentagem por Escola ============");
+    for (indice = 0; indice < *registo_escolas; indice++)
+    {
+        printf("\n%s: %.2f%% (%.2f$)", escolas[indice].abreviatura, (transacoes_escolas[indice] / total) * 100, transacoes_escolas[indice]);
+    }
+    printf("\n===============================================");
 }
 
 /**
@@ -869,9 +963,7 @@ void consultar_utilizadores(t_utilizador utilizadores[], int *registos_utilizado
             }
             printf("\nPagina %d de %.0f. Existem %d utilizadores registados.", pagina, ceil(((double)*registos_utilizadores)/MAX_LINHAS_TABELA), *registos_utilizadores);
 
-            selecao = selecionar_opcao("(V)oltar, (A)nterior, (P)roxima?", (char[3])
-            {'v', 'a', 'p'
-            }); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
+            selecao = selecionar_opcao("(V)oltar, (A)nterior, (P)roxima?", (char[3]){'v', 'a', 'p'}); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
             calcular_navegacao_tabela(&selecao, &offset, registos_utilizadores, &pagina, &linhas_na_pagina);
         }
         while(selecao != 'v');
@@ -919,9 +1011,7 @@ void consultar_transacoes(t_transacao transacoes[], int* registos_transacoes, t_
             }
             printf("\nPagina %d de %.0f. Existem %d transacoes registadas.", pagina, ceil(((double)*registos_transacoes)/MAX_LINHAS_TABELA), *registos_transacoes);
 
-            selecao = selecionar_opcao("(V)oltar, (A)nterior, (P)roxima?", (char[3])
-            {'v', 'a', 'p'
-            }); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
+            selecao = selecionar_opcao("(V)oltar, (A)nterior, (P)roxima?", (char[3]){'v', 'a', 'p'}); // Vetor diretamente na chamada da função: https://stackoverflow.com/a/27281507/10935376
             calcular_navegacao_tabela(&selecao, &offset, registos_transacoes, &pagina, &linhas_na_pagina);
         }
         while(selecao != 'v');
@@ -1192,52 +1282,4 @@ char tratador_erros(char mensagem[])
     }
     while(opcao != 'n' && opcao != 's');
     return opcao;
-}
-
-/**
-*Faço isto eu depois
-*
-*
-*/
-void total_faturado_por_escola(t_transacao transacoes[],int *registos_transacoes,t_escola escolas[],int *registos_escolas,t_utilizador utilizadores[],int *registos_utilizadores,float total_transacoes[])
-{
-    int indice_transacoes,indice_escolas; //Variável para correr o vetor de transações.
-    int user_transacao,escola_user; //Variáveis em que se atribui o utilizador e a respetiva escola respetivamente.
-
-    if(*registos_transacoes>0)
-    {
-        for(indice_escolas=0;indice_escolas<*registos_escolas;indice_escolas++)
-        {
-            for(indice_transacoes=0;indice_transacoes< *registos_transacoes;indice_transacoes++)
-            {
-                if(transacoes[indice_transacoes].tipo==1) //Tipo 1 quer dizer que é do tipo de pagamento
-                {
-                    user_transacao=transacoes[indice_transacoes].utilizador-1;
-                    escola_user=utilizadores[user_transacao].escola;
-                    if(escola_user==indice_escolas+1){
-                        total_transacoes[indice_escolas] += transacoes[escola_user].valor;
-                    }
-                }
-            }
-        }
-    }
-}
-float percentagem_de_fatura_por_escola(float total_transacao_escola[], float total_todas_escolas)
-{
-    float percentagem [MAX_ESCOLAS];
-    int indice;
-    for(indice=0;indice<MAX_ESCOLAS;indice++)
-    {
-        percentagem[indice]=(total_transacao_escola[indice] / total_todas_escolas) * 100;
-    }
-    return percentagem[MAX_ESCOLAS];
-}
-float total_faturado_em_todas_as_escolas(float total_transacoes[])
-{
-    int indice;
-    float total=0;
-    for(indice=0;indice<MAX_ESCOLAS;indice++){
-        total=total+total_transacoes[indice];
-    }
-    return total;
 }
