@@ -88,6 +88,7 @@ void registar_utilizadores(t_utilizador [],int *, t_escola [], int *);
 void consultar_utilizadores(t_utilizador [], int *, t_escola []);
 void total_faturado_por_escola(t_transacao [], int *, t_escola [], int *, t_utilizador [], float []);
 void percentagem_faturacao_por_escola(t_escola [], float [], int *);
+void faturado_entre_datas_horizontes(t_transacao [], int *, t_escola [], int *, t_utilizador [],int *);
 
 int main()
 {
@@ -719,6 +720,41 @@ void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoe
     }
 }
 
+void faturado_entre_datas_horizontes(t_transacao transacoes[], int *registos_transacoes, t_escola escolas[], int *registos_escolas, t_utilizador utilizadores[], int *registos_utilizadores)
+{
+    char dataInicio[8],dataFinal[8];
+    int utilizador;
+    int diaInicio,diaFinal,mesInicio,mesFinal,anoInicio,anoFinal,indice;
+    double totalAluno=0,totalFuncionario=0,totalDocente=0;
+
+    diaInicio=ler_inteiro("Qual o dia de inicio:",1,31);
+    mesInicio=ler_inteiro("Qual o mes de inicio:",1,12);
+    anoInicio=ler_inteiro("Qual o ano de inicio:",2021,2030);
+    diaFinal=ler_inteiro("Qual o dia de fim:",diaInicio,31);
+    mesFinal=ler_inteiro("Qual o mes de fim:",mesInicio,12);
+    anoFinal=ler_inteiro("Qual o ano de fim:",anoInicio,2030);
+    dataInicio=diaInicio+"/"+mesInicio+"/"+anoInicio;
+    dataFinal=diaFinal+"/"+mesFinal+"/"+anoFinal;
+
+    for(indice=0,indice<*registos_transacoes,indice++)
+    {
+        if(transacoes[indice].tempo_registo>=dataInicio&&transacoes[indice].tempo_registo<=dataFinal)
+        {
+            if(transacoes[indice].tipo==1)
+            {
+                utilizador=transacoes[indice].utilizador;
+                if(utilizadores[utilizador].tipo==1)
+                    totalAluno+=transacoes[indice].valor;
+                else if(utilizadores[utilizador].tipo==2)
+                    totalDocente+=transacoes[indice].valor;
+                else if(utilizadores[utilizador].tipo==3)
+                    totalFuncionario+=transacoes[indice].valor;
+            }
+        }
+    }
+}
+
+
 /**
  * @brief Apresenta a precentagem e valor faturado individualmente por cada escola
  * @param escolas Vetor do tipo t_escola com as escolas registadas.
@@ -743,6 +779,7 @@ void percentagem_faturacao_por_escola(t_escola escolas[], float transacoes_escol
     }
     printf("\n===============================================");
 }
+
 
 /**
  * @brief Pede as informações necessárias e regista uma escola no vetor de estruturas t_escola
