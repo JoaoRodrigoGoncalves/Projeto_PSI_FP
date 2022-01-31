@@ -597,14 +597,13 @@ int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos,
 }
 
 /**
- * @brief 
- * 
- * @param mensagem 
- * @param dia 
- * @param mes 
- * @param ano 
- * @param hora 
- * @param minuto 
+ * @brief Lê e valida uma data/hora indicada pelo
+ * @param mensagem A mensagem a mostrar ao utilizador
+ * @param dia Dia indicado pelo utilizador
+ * @param mes Mês indicado pelo utilizador (já ajustado para a struct)
+ * @param ano Ano indicado pelo utilizador (já ajustado para a struct)
+ * @param hora Hora indicada pelo utilizador
+ * @param minuto Minuto indicado pelo utilizador
  */
 void ler_data_hora(char mensagem[], int *dia, int *mes, int *ano, int *hora, int *minuto)
 {
@@ -758,11 +757,10 @@ void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoe
 }
 
 /**
- * @brief 
- * 
- * @param transacoes 
- * @param registos_transacoes 
- * @param utilizadores 
+ * @brief Pesquisa e apresenta o total de pagamentos efetuados por cada tipo de utilizador no periodo indicado pelo mesmo
+ * @param transacoes Vetor do tipo t_transacao com.
+ * @param registos_transacoes (Ponteiro) Quantidade de transacoes registadas
+ * @param utilizadores Vetor do tipo t_utilizadores.
  */
 void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transacoes, t_utilizador utilizadores[])
 {
@@ -801,7 +799,7 @@ void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transac
             total_transacoes_a_mostrar++;
         }
     }
-    
+
     if(total_transacoes_a_mostrar > 0)
     {
         printf("\n=== Resultados Da Pesquisa Horizontal ===");
