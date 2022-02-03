@@ -118,12 +118,10 @@ int main()
                     {
                     case 'r':
                         registar_escola(escolas, &escolas_registadas);
-                        selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                         break;
 
                     case 'c':
                         consultar_escolas(escolas, &escolas_registadas);
-                        selecao_saida_escolas = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                         break;
 
                     case 'v':
@@ -143,12 +141,10 @@ int main()
                     {
                     case 'r':
                         registar_utilizadores(utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
-                        selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                         break;
 
                     case 'c':
                         consultar_utilizadores(utilizadores, &utilizadores_registados, escolas);
-                        selecao_saida_utilizadores = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                         break;
 
                     case 'v':
@@ -168,14 +164,11 @@ int main()
                     {
                     case 'r':
                         registar_transacao(transacoes, &transacoes_registadas, utilizadores, &utilizadores_registados, escolas, &escolas_registadas);
-                        selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                         break;
 
                     case 'c':
                         consultar_transacoes(transacoes, &transacoes_registadas, utilizadores);
-                        selecao_saida_transacoes = 'n'; // HOTFIX: parece impedir que exista alguma corrupção na memoria que faz com que o utilizador saia do submenu após término da função
                         break;
-
 
                     case 'v':
                         system("cls");
@@ -196,7 +189,6 @@ int main()
                             break;
 
                         case 'd':
-                            // pesquisa horizontal
                             pesquisa_horizonte_temporal(transacoes, &transacoes_registadas, utilizadores);
                             break;
 
@@ -391,6 +383,8 @@ int opcao_na_array(char opcoes[], char *selecao)
  * @param selecao A opção escolhida pelo utilizador (a - anterior, p - próxima)
  * @param offset Variável utilizada pelo for loop para ler pelo vetor
  * @param num_registo Quantidade de registos no vetor
+ * @param pagina Pagina atual da tabela
+ * @param linhas_mostradas Quantidade de linhas mostradas na página atual
  */
 void calcular_navegacao_tabela(char *selecao, int *offset, int *num_registo, int *pagina, int *linhas_mostradas)
 {
@@ -650,6 +644,7 @@ char menu(float faturado_escola[], int *quantidade_escolas, t_escola escolas[])
     printf("\n[G] Guardar Dados");
     printf("\n[S] Sair");
     printf("\n================================");
+    fflush(stdin);
     escolha = selecionar_opcao("Opcao:", (char[6]){'e', 'u', 't', 'a', 'g', 's'});
     return escolha;
 }
@@ -667,6 +662,7 @@ char menu_escolas()
     printf("\n[C] Consultar Lista");
     printf("\n[V] Voltar ao Menu Anterior");
     printf("\n==========================");
+    fflush(stdin);
     escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
@@ -683,6 +679,7 @@ char menu_utilizadores()
     printf("\n[C] Consultar Utilizadores");
     printf("\n[V] Voltar ao Menu Anterior");
     printf("\n==========================");
+    fflush(stdin);
     escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v'});
     return escolha;
 }
@@ -699,6 +696,7 @@ char menu_transacoes()
     printf("\n[C] Consultar Lista");
     printf("\n[V] Voltar ao Menu Anterior");
     printf("\n=========================");
+    fflush(stdin);
     escolha = selecionar_opcao("Opcao:", (char[3]){'r', 'c', 'v',});
     return escolha;
 }
@@ -715,6 +713,7 @@ char menu_estatistica()
     printf("\n[D] Estatiscas entre duas datas");
     printf("\n[V] Voltar ao Menu Anterior");
     printf("\n======================================");
+    fflush(stdin);
     escolha = selecionar_opcao("Opcao:", (char[3]){'p', 'd', 'v',});
     return escolha;
 }
@@ -1168,7 +1167,7 @@ void carregar_escolas(t_escola escolas[], int *registos_escolas)
             verificacao_leitura = fread(escolas, sizeof(t_escola), elementos, ficheiro);
             if(verificacao_leitura == 0)
             {
-                opcao = tratador_erros("Ocorreu um erro ao ler as escolas");
+                opcao = selecionar_opcao("Ocorreu um erro ao ler as escolas. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
             }
             else
             {
@@ -1207,7 +1206,7 @@ void carregar_utilizadores(t_utilizador utilizadores[], int *registos_utilizador
             verificacao_leitura = fread(utilizadores, sizeof(t_utilizador), elementos, ficheiro);
             if(verificacao_leitura == 0)
             {
-                opcao = tratador_erros("Ocorreu um erro ao ler os utilizadores");
+                opcao = selecionar_opcao("Ocorreu um erro ao ler os utilizadores. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
             }
             else
             {
@@ -1246,7 +1245,7 @@ void carregar_transacoes(t_transacao transacoes[], int *registos_transacoes)
             verificacao_leitura = fread(transacoes, sizeof(t_transacao), elementos, ficheiro);
             if(verificacao_leitura == 0)
             {
-                opcao = tratador_erros("Ocorreu um erro ao ler as transacoes");
+                opcao = selecionar_opcao("Ocorreu um erro ao ler as transacoes. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
             }
             else
             {
@@ -1276,14 +1275,14 @@ void guardar_escolas(t_escola escolas[], int *registos_escolas)
             ficheiro = fopen("dados_escolas.dat", "wb");
             if(ficheiro == NULL)
             {
-                opcao = tratador_erros("Ocorreu um erro ao tentar abrir o ficheiro de escolas para escrita");
+                opcao = selecionar_opcao("Ocorreu um erro ao tentar abrir o ficheiro de escolas para escrita. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
             }
             else
             {
                 verificacao_escrita = fwrite(escolas, sizeof(t_escola), *registos_escolas, ficheiro);
                 if(verificacao_escrita != *registos_escolas)
                 {
-                    opcao = tratador_erros("Ocorreu um erro ao tentar guardar o ficheiro de escolas");
+                    opcao = selecionar_opcao("Ocorreu um erro ao tentar guardar o ficheiro de escolas. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
                 }
                 fclose(ficheiro);
             }
@@ -1310,14 +1309,14 @@ void guardar_utilizadores(t_utilizador utilizadores[], int *registos_utilizadore
             ficheiro = fopen("dados_utilizadores.dat", "wb");
             if(ficheiro == NULL)
             {
-                opcao = tratador_erros("Ocorreu um erro ao tentar abrir o ficheiro de utilizadores para escrita");
+                opcao = selecionar_opcao("Ocorreu um erro ao tentar abrir o ficheiro de utilizadores para escrita. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
             }
             else
             {
                 verificacao_escrita = fwrite(utilizadores, sizeof(t_utilizador), *registos_utilizadores, ficheiro);
                 if(verificacao_escrita != *registos_utilizadores)
                 {
-                    opcao = tratador_erros("Ocorreu um erro ao tentar guardar o ficheiro de utilizadores");
+                    opcao = selecionar_opcao("Ocorreu um erro ao tentar guardar o ficheiro de utilizadores. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
                 }
                 fclose(ficheiro);
             }
@@ -1344,38 +1343,18 @@ void guardar_transacoes(t_transacao transacoes[], int *registo_transacoes)
             ficheiro = fopen("dados_transacoes.dat", "wb");
             if(ficheiro == NULL)
             {
-                opcao = tratador_erros("Ocorreu um erro ao tentar abrir o ficheiro de transacoes para escrita");
+                opcao = selecionar_opcao("Ocorreu um erro ao tentar abrir o ficheiro de transacoes para escrita. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
             }
             else
             {
                 verificacao_escrita = fwrite(transacoes, sizeof(t_transacao), *registo_transacoes, ficheiro);
                 if(verificacao_escrita != *registo_transacoes)
                 {
-                    opcao = tratador_erros("Ocorreu um erro ao tentar guardar o ficheiro de transacoes");
+                    opcao = selecionar_opcao("Ocorreu um erro ao tentar guardar o ficheiro de transacoes. Tentar novamente? (s/n)", (char[2]){'s', 'n'});
                 }
                 fclose(ficheiro);
             }
         }
         while(opcao != 'n');
     }
-}
-
-/**
- * @brief Apresenta ao utilizador a escolha para tentar refazer a última operação
- * @param mensagem A mensagem de erro a apresentar (já incluí questão de tentar novamente)
- * @return char A escolha o utilizador (s/n)
- */
-char tratador_erros(char mensagem[])
-{
-    char opcao = 'n';
-    do
-    {
-        printf("\n%s. Tentar Novamente? (s/n) ", mensagem);
-        scanf(" %c", &opcao);
-        opcao = tolower(opcao);
-        if(opcao != 'n' && opcao != 's')
-            printf("\nOpcao Invalida. Tente Novamente.\n");
-    }
-    while(opcao != 'n' && opcao != 's');
-    return opcao;
 }
