@@ -52,8 +52,6 @@ float ler_real(char [], float, float);
 void ler_string(char [], char [], int, int);
 void aplicar_tabs(char [], int);
 char selecionar_opcao(char [], char []);
-void consultar_utilizadores(t_utilizador [], int *, t_escola []);
-char tratador_erros(char []);
 int opcao_na_array(char [], char *);
 void calcular_navegacao_tabela(char *, int *, int *, int *, int *);
 int processar_movimento(t_utilizador [], int *, int *, float *);
@@ -71,6 +69,18 @@ char menu_utilizadores();
 char menu_estatistica();
 char confirmar_saida();
 
+// outras funções
+
+void registar_escola(t_escola [], int *);
+void registar_utilizadores(t_utilizador [],int *, t_escola [], int *);
+void registar_transacao(t_transacao [], int *, t_utilizador [], int *, t_escola [], int *);
+void consultar_escolas(t_escola [], int *);
+void consultar_utilizadores(t_utilizador [], int *, t_escola []);
+void consultar_transacoes(t_transacao [], int *, t_utilizador []);
+void total_faturado_por_escola(t_transacao [], int *, int *, t_utilizador [], float []);
+void percentagem_faturacao_por_escola(t_escola [], float [], int *);
+void pesquisa_horizonte_temporal(t_transacao [], int *, t_utilizador []);
+
 // funções de dados
 
 void carregar_escolas(t_escola [], int *);
@@ -79,18 +89,6 @@ void carregar_transacoes(t_transacao [], int *);
 void guardar_escolas(t_escola [], int *);
 void guardar_utilizadores(t_utilizador [], int *);
 void guardar_transacoes(t_transacao [], int *);
-
-// outras funções
-
-void registar_escola(t_escola [], int *);
-void consultar_escolas(t_escola [], int *);
-void registar_transacao(t_transacao [], int *, t_utilizador [], int *, t_escola [], int *);
-void consultar_transacoes(t_transacao [], int *, t_utilizador []);
-void registar_utilizadores(t_utilizador [],int *, t_escola [], int *);
-void consultar_utilizadores(t_utilizador [], int *, t_escola []);
-void total_faturado_por_escola(t_transacao [], int *, int *, t_utilizador [], float []);
-void percentagem_faturacao_por_escola(t_escola [], float [], int *);
-void pesquisa_horizonte_temporal(t_transacao [], int *, t_utilizador []);
 
 int main()
 {
@@ -723,124 +721,25 @@ char menu_estatistica()
 }
 
 /**
- * @brief Calcula o total faturado por cada escola registada.
- * @param transacoes Vetor do tipo t_transacao.
- * @param registos_transacoes (Ponteiro) Quantidade de transacoes registadas.
- * @param registos_escolas (Ponteiro) Quantidade de escolas registadas.
- * @param utilizadores Vetor do tipo t_utilizador.
- * @param total_transacoes Vetor do tipo float onde são guardados os totais faturados por cada escola.
+ * @brief Pergunta ao utilizador se tem a certeza que quer sair da aplicação
+ * @return char 's' se confirma a saída, 'n' se não confirma a saída
  */
-void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoes, int *registos_escolas, t_utilizador utilizadores[], float total_transacoes[])
+char confirmar_saida()
 {
-    int indice_transacoes, indice_escolas, user_transacao, escola_user;
-
-    if (*registos_transacoes > 0) // transacoes persupõe que já existem escolas
+    char resposta;
+    do
     {
-        for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++) // colocar os valores das escolas a 0
-        {
-            total_transacoes[indice_escolas] = 0;
-        }
+        printf("\nTem a certeza que pretende sair (s/n)? ");
+        scanf(" %c", &resposta);
+        resposta = tolower(resposta);
 
-        for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++)
-        {
-            for (indice_transacoes = 0; indice_transacoes < *registos_transacoes; indice_transacoes++)
-            {
-                if (strcmp(transacoes[indice_transacoes].tipo, "Pagamento") == 0)
-                {
-                    user_transacao = transacoes[indice_transacoes].utilizador - 1; // índice do utilizador no vetor de utilizadores
-                    escola_user = utilizadores[user_transacao].escola - 1; // índice da escola no vetor de escolas
-                    if (escola_user == indice_escolas)
-                    {
-                        total_transacoes[indice_escolas] += transacoes[indice_transacoes].valor;
-                    }
-                }
-            }
-        }
+        if(resposta != 's' && resposta != 'n')
+            printf("\n\nValor Invalido. Tente Novamente!\n\n");
+
     }
+    while(resposta != 's' && resposta != 'n');
+    return resposta;
 }
-
-/**
- * @brief Pesquisa e apresenta o total de pagamentos efetuados por cada tipo de utilizador no periodo indicado pelo mesmo
- * @param transacoes Vetor do tipo t_transacao com.
- * @param registos_transacoes (Ponteiro) Quantidade de transacoes registadas
- * @param utilizadores Vetor do tipo t_utilizadores.
- */
-void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transacoes, t_utilizador utilizadores[])
-{
-    int posicao, total_transacoes_a_mostrar = 0, contador_transacoes[3] = {0};
-    float total_tipo[3] = {0};
-    time_t timestamp_inicio, timestamp_fim;
-
-    system("cls");
-    timestamp_inicio = obter_data_timestamp("Indique a data de inicio de pesquisa (dia/mes/ano)", 0, 0);
-    timestamp_inicio = obter_data_timestamp("Indique a data de fim de pesquisa (dia/mes/ano)", 23, 59);
-
-    for(posicao = 0; posicao < *registos_transacoes; posicao++)
-    {
-        if(strcmp(transacoes[posicao].tipo, "Pagamento") == 0 && transacoes[posicao].tempo_registo >= timestamp_inicio && transacoes[posicao].tempo_registo <= timestamp_fim)
-        {
-            // Estudante 0 / Docente 1 / Funcionario 2
-
-            if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Estudante") == 0)
-            {
-                total_tipo[0] += transacoes[posicao].valor;
-                contador_transacoes[0] += 1;
-            }
-
-            if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Docente") == 0)
-            {
-                total_tipo[1] += transacoes[posicao].valor;
-                contador_transacoes[1] += 1;
-            }
-
-            if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Funcionario") == 0)
-            {
-                total_tipo[2] += transacoes[posicao].valor;
-                contador_transacoes[2] += 1;
-            }
-            total_transacoes_a_mostrar++;
-        }
-    }
-
-    if(total_transacoes_a_mostrar > 0)
-    {
-        printf("\n=== Resultados Da Pesquisa Horizontal ===");
-        printf("\nEstudantes: \t%.2fEUR (%d transacoes)", total_tipo[0], contador_transacoes[0]);
-        printf("\nDocente: \t%.2fEUR (%d transacoes)", total_tipo[1], contador_transacoes[1]);
-        printf("\nFuncionarios: \t%.2fEUR (%d transacoes)", total_tipo[2], contador_transacoes[2]);
-        printf("\n=========================================\n");
-    }
-    else
-    {
-        printf("\nNao existem transacoes de pagamentos no periodo indicado.\n\n");
-    }
-}
-
-/**
- * @brief Apresenta a precentagem e valor faturado individualmente por cada escola
- * @param escolas Vetor do tipo t_escola com as escolas registadas.
- * @param transacoes_escolas Vetor do tipo float com as transações das escolas em que cada indice corresponde a uma escola.
- * @param registo_escolas (Ponteiro) Quantidade de escolas registadas.
- */
-void percentagem_faturacao_por_escola(t_escola escolas[], float transacoes_escolas[], int *registo_escolas)
-{
-    int indice;
-    float total = 0;
-
-    for (indice = 0; indice < *registo_escolas; indice++)
-    {
-        total += transacoes_escolas[indice];
-    }
-
-    system("cls");
-    printf("\n============ Prcentagem por Escola ============");
-    for (indice = 0; indice < *registo_escolas; indice++)
-    {
-        printf("\n%s:\t %.2f%% (%.2f EUR)", escolas[indice].abreviatura, (transacoes_escolas[indice] / total) * 100, transacoes_escolas[indice]);
-    }
-    printf("\n===============================================");
-}
-
 
 /**
  * @brief Pede as informações necessárias e regista uma escola no vetor de estruturas t_escola
@@ -1122,24 +1021,122 @@ void consultar_transacoes(t_transacao transacoes[], int* registos_transacoes, t_
 }
 
 /**
- * @brief Pergunta ao utilizador se tem a certeza que quer sair da aplicação
- * @return char 's' se confirma a saída, 'n' se não confirma a saída
+ * @brief Calcula o total faturado por cada escola registada.
+ * @param transacoes Vetor do tipo t_transacao.
+ * @param registos_transacoes (Ponteiro) Quantidade de transacoes registadas.
+ * @param registos_escolas (Ponteiro) Quantidade de escolas registadas.
+ * @param utilizadores Vetor do tipo t_utilizador.
+ * @param total_transacoes Vetor do tipo float onde são guardados os totais faturados por cada escola.
  */
-char confirmar_saida()
+void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoes, int *registos_escolas, t_utilizador utilizadores[], float total_transacoes[])
 {
-    char resposta;
-    do
+    int indice_transacoes, indice_escolas, user_transacao, escola_user;
+
+    if (*registos_transacoes > 0) // transacoes persupõe que já existem escolas
     {
-        printf("\nTem a certeza que pretende sair (s/n)? ");
-        scanf(" %c", &resposta);
-        resposta = tolower(resposta);
+        for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++) // colocar os valores das escolas a 0
+        {
+            total_transacoes[indice_escolas] = 0;
+        }
 
-        if(resposta != 's' && resposta != 'n')
-            printf("\n\nValor Invalido. Tente Novamente!\n\n");
-
+        for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++)
+        {
+            for (indice_transacoes = 0; indice_transacoes < *registos_transacoes; indice_transacoes++)
+            {
+                if (strcmp(transacoes[indice_transacoes].tipo, "Pagamento") == 0)
+                {
+                    user_transacao = transacoes[indice_transacoes].utilizador - 1; // índice do utilizador no vetor de utilizadores
+                    escola_user = utilizadores[user_transacao].escola - 1; // índice da escola no vetor de escolas
+                    if (escola_user == indice_escolas)
+                    {
+                        total_transacoes[indice_escolas] += transacoes[indice_transacoes].valor;
+                    }
+                }
+            }
+        }
     }
-    while(resposta != 's' && resposta != 'n');
-    return resposta;
+}
+
+/**
+ * @brief Apresenta a precentagem e valor faturado individualmente por cada escola
+ * @param escolas Vetor do tipo t_escola com as escolas registadas.
+ * @param transacoes_escolas Vetor do tipo float com as transações das escolas em que cada indice corresponde a uma escola.
+ * @param registo_escolas (Ponteiro) Quantidade de escolas registadas.
+ */
+void percentagem_faturacao_por_escola(t_escola escolas[], float transacoes_escolas[], int *registo_escolas)
+{
+    int indice;
+    float total = 0;
+
+    for (indice = 0; indice < *registo_escolas; indice++)
+    {
+        total += transacoes_escolas[indice];
+    }
+
+    system("cls");
+    printf("\n============ Prcentagem por Escola ============");
+    for (indice = 0; indice < *registo_escolas; indice++)
+    {
+        printf("\n%s:\t %.2f%% (%.2f EUR)", escolas[indice].abreviatura, (transacoes_escolas[indice] / total) * 100, transacoes_escolas[indice]);
+    }
+    printf("\n===============================================");
+}
+
+/**
+ * @brief Pesquisa e apresenta o total de pagamentos efetuados por cada tipo de utilizador no periodo indicado pelo mesmo
+ * @param transacoes Vetor do tipo t_transacao com.
+ * @param registos_transacoes (Ponteiro) Quantidade de transacoes registadas
+ * @param utilizadores Vetor do tipo t_utilizadores.
+ */
+void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transacoes, t_utilizador utilizadores[])
+{
+    int posicao, total_transacoes_a_mostrar = 0, contador_transacoes[3] = {0};
+    float total_tipo[3] = {0};
+    time_t timestamp_inicio, timestamp_fim;
+
+    system("cls");
+    timestamp_inicio = obter_data_timestamp("Indique a data de inicio de pesquisa (dia/mes/ano)", 0, 0);
+    timestamp_fim = obter_data_timestamp("Indique a data de fim de pesquisa (dia/mes/ano)", 23, 59);
+
+    for(posicao = 0; posicao < *registos_transacoes; posicao++)
+    {
+        if(strcmp(transacoes[posicao].tipo, "Pagamento") == 0 && transacoes[posicao].tempo_registo >= timestamp_inicio && transacoes[posicao].tempo_registo <= timestamp_fim)
+        {
+            // Estudante 0 / Docente 1 / Funcionario 2
+
+            if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Estudante") == 0)
+            {
+                total_tipo[0] += transacoes[posicao].valor;
+                contador_transacoes[0] += 1;
+            }
+
+            if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Docente") == 0)
+            {
+                total_tipo[1] += transacoes[posicao].valor;
+                contador_transacoes[1] += 1;
+            }
+
+            if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Funcionario") == 0)
+            {
+                total_tipo[2] += transacoes[posicao].valor;
+                contador_transacoes[2] += 1;
+            }
+            total_transacoes_a_mostrar++;
+        }
+    }
+
+    if(total_transacoes_a_mostrar > 0)
+    {
+        printf("\n=== Resultados Da Pesquisa Horizontal ===");
+        printf("\nEstudantes: \t%.2fEUR (%d transacoes)", total_tipo[0], contador_transacoes[0]);
+        printf("\nDocente: \t%.2fEUR (%d transacoes)", total_tipo[1], contador_transacoes[1]);
+        printf("\nFuncionarios: \t%.2fEUR (%d transacoes)", total_tipo[2], contador_transacoes[2]);
+        printf("\n=========================================\n");
+    }
+    else
+    {
+        printf("\nNao existem transacoes de pagamentos no periodo indicado.\n\n");
+    }
 }
 
 /**
