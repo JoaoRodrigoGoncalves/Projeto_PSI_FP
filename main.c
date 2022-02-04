@@ -60,7 +60,7 @@ int processar_movimento(t_utilizador [], int *, int *, float *);
 int validar_NIF(t_utilizador [], int *);
 void validar_email(char []);
 int validar_id_utilizador(t_utilizador [], int*, int *);
-void ler_data_hora(char[], int *, int *, int *, int *, int *);
+time_t obter_data_timestamp(char[], int, int);
 
 // menus
 
@@ -591,30 +591,34 @@ int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos,
 }
 
 /**
- * @brief Lê e valida uma data/hora indicada pelo
+ * @brief Lê e valida uma data indicada pelo
  * @param mensagem A mensagem a mostrar ao utilizador
- * @param dia Dia indicado pelo utilizador
- * @param mes Mês indicado pelo utilizador (já ajustado para a struct)
- * @param ano Ano indicado pelo utilizador (já ajustado para a struct)
- * @param hora Hora indicada pelo utilizador
- * @param minuto Minuto indicado pelo utilizador
+ * @param valor_padrao_hora O valor que o campo da hora deverá ter
+ * @param valor_padrao_minutos O valor que o campo dos minutos deverá ter
  */
-void ler_data_hora(char mensagem[], int *dia, int *mes, int *ano, int *hora, int *minuto)
+time_t obter_data_timestamp(char mensagem[], int valor_padrao_hora, int valor_padrao_minutos)
 {
-    int entradas = 0;
+    int entradas = 0, dia = 0, mes = 0, ano = 0;
+    struct tm temp_time = {0};
 
     do{
         printf("\n%s: ", mensagem);
         // https://stackoverflow.com/a/34422936/10935376
-        entradas = scanf("%d/%d/%d %d:%d", dia, mes, ano, hora, minuto);
-        if(entradas != 5 || *dia > 31 || *dia < 1 || *mes > 12 || *mes < 1 || *ano < 1900 || *hora > 23 || *hora < 0 || *minuto > 59 || *minuto < 0)
+        entradas = scanf("%d/%d/%d", &dia, &mes, &ano);
+        if(entradas != 3 || dia > 31 || dia < 1 || mes > 12 || mes < 1 || ano < 1900)
         {
             printf("\nErro: Data/hora indicada invalida. Tente novamente.\n");
         }
-    }while(entradas != 5 || *dia > 31 || *dia < 1 || *mes > 12 || *mes < 1 || *ano < 1900 || *hora > 23 || *hora < 0 || *minuto > 59 || *minuto < 0);
-    *mes = *mes - 1; // meses começam em 0
-    *ano = *ano - 1900; // 1900 foi o inicio do unix epoch
-    fflush(stdin);
+    }while(entradas != 3 || dia > 31 || dia < 1 || mes > 12 || mes < 1 || ano < 1900);
+    
+    fflush(stdin); // ter a certeza que não fica nada do buffer depois desta operação
+    temp_time.tm_hour = valor_padrao_hora;
+    temp_time.tm_min = valor_padrao_minutos;
+    temp_time.tm_mday = dia;
+    temp_time.tm_mon = mes - 1; // meses começam em 0
+    temp_time.tm_year = ano - 1900; // é necessário remover 1900 por causa do epoch do NTP
+
+    return mktime(&temp_time);
 }
 
 /**
@@ -635,7 +639,7 @@ char menu(float faturado_escola[], int *quantidade_escolas, t_escola escolas[])
             total += faturado_escola[indice];
         }
     }
-    printf("\nTotal Faturado em todos os campus: %.2f Euros", total);
+    printf("\nTotal Faturado em todos os campi: %.2f Euros", total);
     printf("\n============ Menus =============");
     printf("\n[E] Menu Escolas");
     printf("\n[U] Menu Utilizadores");
@@ -763,17 +767,13 @@ void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoe
  */
 void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transacoes, t_utilizador utilizadores[])
 {
-    int posicao, total_transacoes_a_mostrar = 0;
+    int posicao, total_transacoes_a_mostrar = 0, contador_transacoes[3] = {0};
     float total_tipo[3] = {0};
     time_t timestamp_inicio, timestamp_fim;
-    struct tm data_inicio = {0}, data_fim = {0};
 
     system("cls");
-    ler_data_hora("Indique a data de inicio de pesquisa (dia/mes/ano hora:minuto)", &data_inicio.tm_mday, &data_inicio.tm_mon, &data_inicio.tm_year, &data_inicio.tm_hour, &data_inicio.tm_min);
-    ler_data_hora("Indique a data de fim de pesquisa (dia/mes/ano hora:minuto)", &data_fim.tm_mday, &data_fim.tm_mon, &data_fim.tm_year, &data_fim.tm_hour, &data_fim.tm_min);
-
-    timestamp_inicio = mktime(&data_inicio);
-    timestamp_fim = mktime(&data_fim);
+    timestamp_inicio = obter_data_timestamp("Indique a data de inicio de pesquisa (dia/mes/ano)", 0, 0);
+    timestamp_inicio = obter_data_timestamp("Indique a data de fim de pesquisa (dia/mes/ano)", 23, 59);
 
     for(posicao = 0; posicao < *registos_transacoes; posicao++)
     {
@@ -784,16 +784,19 @@ void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transac
             if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Estudante") == 0)
             {
                 total_tipo[0] += transacoes[posicao].valor;
+                contador_transacoes[0] += 1;
             }
 
             if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Docente") == 0)
             {
                 total_tipo[1] += transacoes[posicao].valor;
+                contador_transacoes[1] += 1;
             }
 
             if(strcmp(utilizadores[transacoes[posicao].utilizador - 1].tipo, "Funcionario") == 0)
             {
                 total_tipo[2] += transacoes[posicao].valor;
+                contador_transacoes[2] += 1;
             }
             total_transacoes_a_mostrar++;
         }
@@ -802,9 +805,9 @@ void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transac
     if(total_transacoes_a_mostrar > 0)
     {
         printf("\n=== Resultados Da Pesquisa Horizontal ===");
-        printf("\nEstudantes: \t%.2fEUR", total_tipo[0]);
-        printf("\nDocente: \t%.2fEUR", total_tipo[1]);
-        printf("\nFuncionarios: \t%.2fEUR", total_tipo[2]);
+        printf("\nEstudantes: \t%.2fEUR (%d transacoes)", total_tipo[0], contador_transacoes[0]);
+        printf("\nDocente: \t%.2fEUR (%d transacoes)", total_tipo[1], contador_transacoes[1]);
+        printf("\nFuncionarios: \t%.2fEUR (%d transacoes)", total_tipo[2], contador_transacoes[2]);
         printf("\n=========================================\n");
     }
     else
