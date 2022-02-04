@@ -6,8 +6,8 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
+#include <ctype.h>
 #include <math.h>
 #include <time.h>
 
@@ -57,7 +57,8 @@ void calcular_navegacao_tabela(char *, int *, int *, int *, int *);
 int processar_movimento(t_utilizador [], int *, int *, float *);
 int validar_NIF(t_utilizador [], int *);
 void validar_email(char []);
-int validar_id_utilizador(t_utilizador [], int*, int *);
+int validar_id_utilizador(t_utilizador [], int *, int *);
+int validar_identificador_escola(t_escola[], int *);
 time_t obter_data_timestamp(char[], int, int, int);
 
 // menus
@@ -78,7 +79,7 @@ void consultar_escolas(t_escola [], int *);
 void consultar_utilizadores(t_utilizador [], int *, t_escola []);
 void consultar_transacoes(t_transacao [], int *, t_utilizador []);
 void total_faturado_por_escola(t_transacao [], int *, int *, t_utilizador [], float []);
-void percentagem_faturacao_por_escola(t_escola [], float [], int *);
+void percentagem_faturacao_por_escola(t_escola [], float [], int *, int *);
 void pesquisa_horizonte_temporal(t_transacao [], int *, t_utilizador []);
 
 // funções de dados
@@ -183,7 +184,7 @@ int main()
                     switch(menu_estatistica())
                     {
                         case 'p':
-                            percentagem_faturacao_por_escola(escolas, faturado_escola, &escolas_registadas);
+                            percentagem_faturacao_por_escola(escolas, faturado_escola, &escolas_registadas, &transacoes_registadas);
                             break;
 
                         case 'd':
@@ -589,6 +590,37 @@ int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos,
 }
 
 /**
+ * @brief Pede um identificador único de uma escola ao utilizador e devolve-o caso a escola exista
+ * @param escolas Vetor do tipo t_escola com as escolas registadas
+ * @param quantidade_escolas (Ponteiro) Quantidade de escolas registadas.
+ * @return int o ID único válido indicado pelo utilizador
+ */
+int validar_identificador_escola(t_escola escolas[], int *quantidade_escolas)
+{
+    int id_escola, posicao, posicao_escola = -1;
+
+    do
+    {
+        id_escola = ler_inteiro("\nIndique o identificador da escola", 1, *quantidade_escolas);
+        for(posicao = 0; posicao < *quantidade_escolas; posicao++)
+        {
+            if(escolas[posicao].identificador == id_escola)
+            {
+                posicao_escola = posicao; // alterar o valor
+                posicao = *quantidade_escolas; // forçar saída do loop
+            }
+        }
+
+        if(posicao_escola == -1)
+        {
+            printf("Identificador invalido. Tente Novamente.");
+        }
+    }
+    while(posicao_escola == -1);
+    return id_escola;
+}
+
+/**
  * @brief Lê, valida e converte uma data indicada pelo utilizador
  * @param mensagem A mensagem a mostrar ao utilizador
  * @param valor_padrao_hora O valor que o campo da hora deverá ter
@@ -608,9 +640,9 @@ time_t obter_data_timestamp(char mensagem[], int valor_padrao_hora, int valor_pa
         {
             printf("\nErro: Data/hora indicada invalida. Tente novamente.\n");
         }
+        fflush(stdin); // ter a certeza que não fica nada do buffer depois desta operação
     }while(entradas != 3 || dia > 31 || dia < 1 || mes > 12 || mes < 1 || ano < 1900);
-    
-    fflush(stdin); // ter a certeza que não fica nada do buffer depois desta operação
+
     temp_time.tm_hour = valor_padrao_hora;
     temp_time.tm_min = valor_padrao_minutos;
     temp_time.tm_sec = valor_padrao_segundos;
@@ -638,8 +670,8 @@ char menu(float faturado_escola[], int *quantidade_escolas, t_escola escolas[])
             printf("\n%s: %.2f Euros", escolas[indice].abreviatura, faturado_escola[indice]);
             total += faturado_escola[indice];
         }
+        printf("\nTotal Faturado em todos os campi: %.2f Euros", total);
     }
-    printf("\nTotal Faturado em todos os campi: %.2f Euros", total);
     printf("\n============ Menus =============");
     printf("\n[E] Menu Escolas");
     printf("\n[U] Menu Utilizadores");
@@ -785,24 +817,25 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
     {
         utilizadores[*num_registos].identificador = *num_registos + 1;
         consultar_escolas(lista_escolas, registos_escolas); // mostrar lista de escolas antes de pedir o ID da escola
-        utilizadores[*num_registos].escola = ler_inteiro("\n=== Registar Utilizador ===\nInsira o identificador da escola", 1, 5); // passamos um pouco mais de texto aqui visto que a função consultar_escolas() limpa a consola visto que normalmente esta é chamada nos menus
+        printf("\n=== Registar Utilizador ==="); // mostramos isto aqui visto que a função consultar_escolas() limpa o ecrã
+        utilizadores[*num_registos].escola = validar_identificador_escola(lista_escolas, registos_escolas);
         ler_string(utilizadores[*num_registos].nome, "Indique o nome", 3, 100);
         utilizadores[*num_registos].NIF  = validar_NIF(utilizadores, num_registos);
         selecao_tipo = ler_inteiro("Escolha o tipo de utilizador (Estudante - 1 | Docente - 2 | Funcionario - 3)", 1, 3);
 
         switch(selecao_tipo)
         {
-        case 1: //estudante
-            strcpy(utilizadores[*num_registos].tipo, "Estudante");
-            break;
+            case 1: //estudante
+                strcpy(utilizadores[*num_registos].tipo, "Estudante");
+                break;
 
-        case 2: //docente
-            strcpy(utilizadores[*num_registos].tipo, "Docente");
-            break;
+            case 2: //docente
+                strcpy(utilizadores[*num_registos].tipo, "Docente");
+                break;
 
-        case 3: //funcionario
-            strcpy(utilizadores[*num_registos].tipo, "Funcionario");
-            break;
+            case 3: //funcionario
+                strcpy(utilizadores[*num_registos].tipo, "Funcionario");
+                break;
         }
 
         validar_email(utilizadores[*num_registos].email);
@@ -812,7 +845,7 @@ void registar_utilizadores(t_utilizador utilizadores[], int *num_registos, t_esc
     }
     else
     {
-        printf("\nO limite de %d utilizadores foi excedido ou nao existem escolas registadas. Existem %d utilizadores registados.\nNao e possivel registar utilizador.", MAX_UTILIZADORES, (*num_registos + 1));
+        printf("\nO limite de %d utilizadores foi excedido ou nao existem escolas registadas. Existem %d utilizadores registados.\nNao e possivel registar utilizador.", MAX_UTILIZADORES, *num_registos);
     }
 }
 
@@ -869,7 +902,7 @@ void registar_transacao(t_transacao transacoes[], int *quantidade_registos_trans
     }
     else
     {
-        printf("\nO limite de %d transacoes foi excedido ou nao existem escolas/utilizadores registados. Existem %d transacoes registadas.\nNao e possivel registar transacao.", MAX_TRANSACOES, (*quantidade_registos_transacoes + 1));
+        printf("\nO limite de %d transacoes foi excedido ou nao existem escolas/utilizadores registados. Existem %d transacoes registadas.\nNao e possivel registar transacao.", MAX_TRANSACOES, *quantidade_registos_transacoes);
     }
 }
 
@@ -1059,23 +1092,30 @@ void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoe
  * @param transacoes_escolas Vetor do tipo float com as transações das escolas em que cada indice corresponde a uma escola.
  * @param registo_escolas (Ponteiro) Quantidade de escolas registadas.
  */
-void percentagem_faturacao_por_escola(t_escola escolas[], float transacoes_escolas[], int *registo_escolas)
+void percentagem_faturacao_por_escola(t_escola escolas[], float transacoes_escolas[], int *registo_escolas, int *registos_transacoes)
 {
     int indice;
     float total = 0;
 
-    for (indice = 0; indice < *registo_escolas; indice++)
+    system("cls");
+    if(*registos_transacoes > 0){
+        for (indice = 0; indice < *registo_escolas; indice++)
+        {
+            total += transacoes_escolas[indice];
+        }
+
+        printf("\n============ Prcentagem por Escola ============");
+        for (indice = 0; indice < *registo_escolas; indice++)
+        {
+            printf("\n%s:\t %.2f%% (%.2f EUR)", escolas[indice].abreviatura, (transacoes_escolas[indice] / total) * 100, transacoes_escolas[indice]);
+        }
+        printf("\n===============================================");
+    }
+    else
     {
-        total += transacoes_escolas[indice];
+        printf("\nNao e possivel mostrar as percentagens pois nao existem transacoes registadas.");
     }
 
-    system("cls");
-    printf("\n============ Prcentagem por Escola ============");
-    for (indice = 0; indice < *registo_escolas; indice++)
-    {
-        printf("\n%s:\t %.2f%% (%.2f EUR)", escolas[indice].abreviatura, (transacoes_escolas[indice] / total) * 100, transacoes_escolas[indice]);
-    }
-    printf("\n===============================================");
 }
 
 /**
