@@ -58,7 +58,7 @@ int processar_movimento(t_utilizador [], int *, int *, float *);
 int validar_NIF(t_utilizador [], int *);
 void validar_email(char []);
 int validar_id_utilizador(t_utilizador [], int*, int *);
-time_t obter_data_timestamp(char[], int, int);
+time_t obter_data_timestamp(char[], int, int, int);
 
 // menus
 
@@ -589,12 +589,13 @@ int validar_id_utilizador(t_utilizador utilizadores[], int *quantidade_registos,
 }
 
 /**
- * @brief Lê e valida uma data indicada pelo
+ * @brief Lê, valida e converte uma data indicada pelo utilizador
  * @param mensagem A mensagem a mostrar ao utilizador
  * @param valor_padrao_hora O valor que o campo da hora deverá ter
  * @param valor_padrao_minutos O valor que o campo dos minutos deverá ter
+ * @param valor_padrao_segundos O valor que o campo dos minutos deverá ter
  */
-time_t obter_data_timestamp(char mensagem[], int valor_padrao_hora, int valor_padrao_minutos)
+time_t obter_data_timestamp(char mensagem[], int valor_padrao_hora, int valor_padrao_minutos, int valor_padrao_segundos)
 {
     int entradas = 0, dia = 0, mes = 0, ano = 0;
     struct tm temp_time = {0};
@@ -612,6 +613,7 @@ time_t obter_data_timestamp(char mensagem[], int valor_padrao_hora, int valor_pa
     fflush(stdin); // ter a certeza que não fica nada do buffer depois desta operação
     temp_time.tm_hour = valor_padrao_hora;
     temp_time.tm_min = valor_padrao_minutos;
+    temp_time.tm_sec = valor_padrao_segundos;
     temp_time.tm_mday = dia;
     temp_time.tm_mon = mes - 1; // meses começam em 0
     temp_time.tm_year = ano - 1900; // é necessário remover 1900 por causa do epoch do NTP
@@ -1034,24 +1036,18 @@ void total_faturado_por_escola(t_transacao transacoes[], int *registos_transacoe
 
     if (*registos_transacoes > 0) // transacoes persupõe que já existem escolas
     {
-        for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++) // colocar os valores das escolas a 0
-        {
-            total_transacoes[indice_escolas] = 0;
-        }
-
         for (indice_escolas = 0; indice_escolas < *registos_escolas; indice_escolas++)
         {
-            for (indice_transacoes = 0; indice_transacoes < *registos_transacoes; indice_transacoes++)
+            total_transacoes[indice_escolas] = 0; // colocar os valores das escolas a 0 porque podem já estar preenchidos com um valor anterior
+        }
+
+        for (indice_transacoes = 0; indice_transacoes < *registos_transacoes; indice_transacoes++)
+        {
+            if (strcmp(transacoes[indice_transacoes].tipo, "Pagamento") == 0)
             {
-                if (strcmp(transacoes[indice_transacoes].tipo, "Pagamento") == 0)
-                {
-                    user_transacao = transacoes[indice_transacoes].utilizador - 1; // índice do utilizador no vetor de utilizadores
-                    escola_user = utilizadores[user_transacao].escola - 1; // índice da escola no vetor de escolas
-                    if (escola_user == indice_escolas)
-                    {
-                        total_transacoes[indice_escolas] += transacoes[indice_transacoes].valor;
-                    }
-                }
+                user_transacao = transacoes[indice_transacoes].utilizador - 1; // índice do utilizador no vetor de utilizadores
+                escola_user = utilizadores[user_transacao].escola - 1; // índice da escola no vetor de escolas
+                total_transacoes[escola_user] += transacoes[indice_transacoes].valor;
             }
         }
     }
@@ -1095,8 +1091,8 @@ void pesquisa_horizonte_temporal(t_transacao transacoes[], int *registos_transac
     time_t timestamp_inicio, timestamp_fim;
 
     system("cls");
-    timestamp_inicio = obter_data_timestamp("Indique a data de inicio de pesquisa (dia/mes/ano)", 0, 0);
-    timestamp_fim = obter_data_timestamp("Indique a data de fim de pesquisa (dia/mes/ano)", 23, 59);
+    timestamp_inicio = obter_data_timestamp("Indique a data de inicio de pesquisa (dia/mes/ano)", 0, 0, 0);
+    timestamp_fim = obter_data_timestamp("Indique a data de fim de pesquisa (dia/mes/ano)", 23, 59, 59);
 
     for(posicao = 0; posicao < *registos_transacoes; posicao++)
     {
